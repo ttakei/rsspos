@@ -1,0 +1,53 @@
+{
+	"name": "laravel/laravel",
+	"description": "The Laravel Framework.",
+	"keywords": ["framework", "laravel"],
+	"license": "MIT",
+	"repositories": [
+	    {
+	        "type": "vcs",
+	        "url": "https://github.com/lsmonki/php-ixr"
+	    },
+	    {
+	      "type":"pear",
+	      "url":"http://pear.php.net"
+	    }
+	],
+	"require": {
+		"pear-pear.php.net/HTTP_Request2": "2.*",
+		"barryvdh/laravel-debugbar": "1.8",
+		"laravel/framework": "4.2.*",
+		"simplepie/simplepie": "dev-master",
+		"lsmonki/php-ixr": "1.7.*",
+		"components/jquery": "*",
+		"twitter/bootstrap": "*"
+	},
+	"autoload": {
+		"classmap": [
+			"app/commands",
+			"app/controllers",
+			"app/models",
+			"app/database/migrations",
+			"app/database/seeds",
+			"app/tests/TestCase.php"
+		]
+	},
+	"scripts": {
+		"post-install-cmd": [
+			"php artisan clear-compiled",
+			"php artisan optimize"
+		],
+		"post-update-cmd": [
+			"php artisan clear-compiled",
+			"php artisan optimize",
+			"php artisan asset:publish --path=vendor/twitter/bootstrap/dist bootstrap"
+		],
+		"post-create-project-cmd": [
+			"php artisan key:generate"
+		]
+	},
+	"config": {
+		"preferred-install": "dist"
+	},
+	"minimum-stability": "stable"
+}
