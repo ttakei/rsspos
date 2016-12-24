@@ -1,0 +1,115 @@
+残件
+リファ表示
+日付毎のIN/OUTカウント数グラフ表示
+
+～～～～～～～～～～～～～～～～～～～～～～～～～～～～～
+
+rank.php変更
+
+★rank.php
+1.jquery load
+2.rank.php?id=hoge
+
+★count.php(クリックアウト側の処理)
+0.click処理
+1.count.php?id=hoge
+POST:url
+
+★js.php(refer取得側の処理)
+0.js.php?id=hoge&r=refer
+
+★cnt.php
+rsswdg_outlog_raw_hoge
+rsswdg_outlog_hoge
+rsswdg_inlog_hoge
+rsswdg_inlog_raw_hoge
+
+～～～～～～
+★アップするファイル
+
+app/config/
+　app.php
+　database.php
+
+app/models/*
+
+app/start/global.php
+
+app/views/*
+
+public/*
+　db.phpをベースに変更
+　rank.php
+
+～～～～～
+★セットアップ
+
+http://61.205.224.190/phpmyadmin/index.php?token=024bc27475df3041a7f75de9a9c7c4c8
+
+curl -sS https://getcomposer.org/installer | php
+mv composer.phar /usr/local/bin/composer
+composer create-project laravel/laravel rsrank.net --prefer-dist
+composer create-project laravel/laravel rss.aiueto.com --prefer-dist
+
+/etc/php.ini
+zend_extension=/usr/local/src/ioncube/ioncube_loader_lin_5.4.so
+
+/etc/httpd/conf.d/vhost.conf
+
+######### rsrank.net #########
+<VirtualHost *:80>
+DocumentRoot /var/www/html/rsrank.net/public
+ServerName rsrank.net
+ServerSignature Off
+DirectoryIndex index.php
+<Directory "/var/www/html/rsrank.net/public">
+Options FollowSymLinks -Indexes
+AllowOverride all
+</Directory>
+HostNameLookups off
+</VirtualHost>
+
+
+～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～～
+
+
+http://rranking8.ziyu.net/edit.php
+
+
+★Access-Analyzer
+●http://j1.ax.xrea.com/l.j
+
+<script type="text/javascript"><!--
+var ID="100843538";
+var AD=0;
+var FRAME=0;
+// --></script>
+<script src="http://j1.ax.xrea.com/l.j?id=100843538" type="text/javascript"></script>
+<noscript>
+<a href="http://w1.ax.xrea.com/c.f?id=100843538" target="_blank"><img src="http://w1.ax.xrea.com/l.f?id=100843538&url=X" alt="AX" border="0"></a>
+</noscript>
+
+～～～～～～～～～～～～～～～～～～～～～～～～
+<SCRIPT TYPE="text/javascript" SRC="http://rranking8.ziyu.net/rank.php?miresinohara"></SCRIPT><A href="http://www.ziyu.net/" target=_blank><IMG SRC="http://rranking8.ziyu.net/rranking.gif" alt="アクセスランキング" border=0 width=35 height=11></A><NOSCRIPT><A href="http://www.ziyu.net/" target=_blank>アクセスランキング</A></NOSCRIPT>
+
+http://rranking8.ziyu.net/rank.php?miresinohara
+
+if(document.documentElement.clientWidth > 51 || document.documentElement.clientHeight > 51){var acrrf;if(!acrrf){acrrf=0;}acrrf++;acr_rfd = document.referrer.replace(/ /g,"%20");acr_rfd = acr_rfd.replace(/&/g,"&amp;");if(acr_rfd){document.write('<SCRIPT TYPE="text/javascript" SRC="http://rranking8.ziyu.net/js.php?miresinohara&136&'+acrrf+'&'+acr_rfd.replace(/"|'|<|>/g,"")+'"></SCRIPT>');}}
+
+
+
+～～～～～～～～～～～～～～～～～～～～～～～～～～
+
+<script type="text/javascript">
+$(document).ready(function(){
+  $("a[href^=http]").click(function(){
+    var url = $(this).attr('href');
+    if( url.indexOf(location.hostname)<0){
+      var text = $(this).text();
+      _gaq.push(
+        ['_trackPageview', '/click/' + encodeURI(text)]
+      );
+    }
+  });
+});
+</script>
