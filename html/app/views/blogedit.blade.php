@@ -9,10 +9,6 @@
 		{{Form::textField('siteurl','ブログURL',$blogs['siteurl'],array('id'=>'url'))}}
 		{{Form::textField('name','ブログ名称',$blogs['name'],array('id'=>'sitename'))}}
 		{{Form::textField('rssurl','RSS URL',$blogs['rssurl'],array('id'=>'rssurl'))}}
-		{{Form::textField('refer','リファ設定',$blogs['refer'],array('id'=>'refermatch'))}}
-		{{Form::textField('image','強制画像(1に設定するとgoogle画像検索)',$blogs['image'])}}
-		{{Form::textField('title','強制タイトル',$blogs['title'])}}
-		{{Form::textField('url','強制URL',$blogs['url'])}}
 
 		@if($_SERVER['SERVER_ADDR']=='153.120.34.241')
 		<div class="panel panel-success">

@@ -5,7 +5,7 @@ return array(
 	'debug' => array_key_exists('REMOTE_ADDR', $_SERVER)?in_array($_SERVER['REMOTE_ADDR'], array('180.214.224.5','124.97.12.102')):false,
 
 	'movService'=>[
-		'movdefault'=>'該当なし',
+		//'movdefault'=>'該当なし',
 		'xvideo'=>'xvideo',
 		'fc2'=>'FC2',
 		'fc2ja'=>'FC2JA',
@@ -22,6 +22,24 @@ return array(
 		'spankbang'=>'spankbang',
 		'youporn'=>'youporn',
 		'txxx'=>'txxx'
+	],
+	'movLinkService'=>[
+		'xvideo__movlink'=>'xvideo',
+		'fc2__movlink'=>'FC2',
+		'fc2ja__movlink'=>'FC2JA',
+		'xhamster__movlink'=>'xhamster',
+		'redtube__movlink'=>'redtube',
+		'erovideonet__movlink'=>'erovideonet',
+		'pornhub__movlink'=>'pornhub',
+		'pipii__movlink'=>'pipii',
+		'javynow__movlink'=>'javynow',
+		'VJAV__movlink'=>'VJAV',
+		'ShareVideos__movlink'=>'ShareVideos',
+		'TokyoTube__movlink'=>'TokyoTube',
+		'Tube8__movlink'=>'Tube8',
+		'spankbang__movlink'=>'spankbang',
+		'youporn__movlink'=>'youporn',
+		'txxx__movlink'=>'txxx'
 	],
 	'post_status' => ['publish'=>'公開','draft'=>'下書き'],
 
@@ -58,6 +76,38 @@ return array(
 		'spankbang'=>'<iframe width="560" height="315" src="http://spankbang.com/#movid#/embed/" frameborder="0" scrolling="no" allowfullscreen></iframe>',
 		'youporn'=>'<iframe src="http://www.youporn.com/embed/#movid#" frameborder=0 height="481" width="608" scrolling=no name="yp_embed_video"></iframe>',
 		'txxx'=>'<iframe width="1280" height="745" src="http://www.txxx.com/embed/#movid#" frameborder="0" allowfullscreen webkitallowfullscreen mozallowfullscreen oallowfullscreen msallowfullscreen></iframe>'
+	],
+
+	'defLinkTpl' => [
+		'xvideo__movlink'=>'<a href="#movLink#">動画はこちら</a>',
+
+		'fc2__movlink'=>'<a href="#movLink#">動画はこちら</a>',
+
+		'fc2ja__movlink'=>'<a href="#movLink#">動画はこちら</a>',
+
+		'xhamster__movlink'=>'<a href="#movLink#">動画はこちら</a>',
+
+		'redtube__movlink'=>'<a href="#movLink#">動画はこちら</a>',
+
+		'erovideonet__movlink'=>'<a href="#movLink#">動画はこちら</a>',
+
+		'pornhub__movlink'=>'<a href="#movLink#">動画はこちら</a>',
+
+		'pipii__movlink'=>'<a href="#movLink#">動画はこちら</a>',
+
+		'javynow__movlink'=>'<a href="#movLink#">動画はこちら</a>',
+		
+		'VJAV__movlink'=>'<a href="#movLink#">動画はこちら</a>',
+		
+		'ShareVideos__movlink'=>'<a href="#movLink#">動画はこちら</a>',
+		
+		'TokyoTube__movlink'=>'<a href="#movLink#">動画はこちら</a>',
+		
+		'Tube8__movlink'=>'<a href="#movLink#">動画はこちら</a>',
+		
+		'youporn__movlink'=>'<a href="#movLink#">動画はこちら</a>',
+		
+		'txxx__movlink'=>'<a href="#movLink#">動画はこちら</a>',
 	],
 
 	'url' => 'http://localhost',

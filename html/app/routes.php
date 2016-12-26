@@ -470,7 +470,8 @@ Route::post('/rss/site',array('before'=>'csrf',function(){
 Route::get('cron/rssGet/{id?}',['uses'=>'CronController@rssGet','as'=>'cron.rssGet']);
 Route::get('cron/rssPost/{id?}',['uses'=>'CronController@rssPost','as'=>'cron.rssPost']);
 Route::get('cron/cnt',['uses'=>'CronController@cnt','as'=>'cron.cnt']);
-
+Route::get('cron/rssGet2',['uses'=>'CronController2@rssGet','as'=>'cron2.rssGet']);
+Route::get('cron/rssPost2',['uses'=>'CronController2@rssPost','as'=>'cron2.rssGet']);
 
 Route::get('/info',function()
 {
