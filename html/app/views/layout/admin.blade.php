@@ -25,9 +25,9 @@
 		<p class="navbar-text">{{$cfg['nickname']}}ログイン中</p>
 		<li><a href="{{route('mypage')}}">マイページ</a></li>
 		<li><a href="/rss/site">サイト管理</a></li>
-		<li class="disabled"><a href="/cron/rssGet.php" target="_blank">RSS手動取得(旧)</a></li>
-		<li><a href="/cron/rssGet" target="_blank">RSS手動取得(新)</a></li>
-		<li><a href="/cron/rssPost" target="_blank">手動投稿(新)</a></li>
+		<!--<li class="disabled"><a href="/cron/rssGet.php" target="_blank">RSS手動取得(旧)</a></li>-->
+		<li><a href="/cron/rssGet2" target="_blank">RSS手動取得(新)</a></li>
+		<li><a href="/cron/rssPost2" target="_blank">手動投稿(新)</a></li>
 		<li><a href="{{route('replace')}}">置換設定</a></li>
 		<li><a href="{{route('actress')}}">女優名設定</a></li>
 		<li><a href="{{route('logout')}}">ログアウト</a></li>
@@ -53,12 +53,12 @@
 		<div class="panel-heading">サイトメニュー</div>
 		<ul class="list-group">
 			<li class="list-group-item"><a href="{{route('blog')}}" class="">ブログリスト</a></li>
-			<li class="list-group-item"><a href="{{route('parts')}}" class="">パーツリスト</a></li>
 			<li class="list-group-item"><a href="{{route('article')}}" class="">記事リスト</a></li>
-			<li class="list-group-item"><a href="{{route('refloop')}}" class="">リファリスト</a></li>
 			<li class="list-group-item"><a href="{{route('ngword')}}" class="">取込除外ワード</a></li>
 			<li class="list-group-item"><a href="{{route('postword')}}" class="">投稿ワード</a></li>
 			<li class="list-group-item"><a href="{{route('noActress')}}" class="">NON女優名設定</a></li>
+			<li class="list-group-item"><a href="/cron/rssGet2?acc={{Session::get('acc')}}" class="">RSS手動取得</a></li>
+			<li class="list-group-item"><a href="/cron/rssPost2?acc={{Session::get('acc')}}" class="">手動投稿</a></li>
 		</ul>
 	</div>
 	@endif

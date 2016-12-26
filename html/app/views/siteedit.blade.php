@@ -1,5 +1,7 @@
 @extends('layout.admin')
 
+
+
 @section('side')
 <div class="list-group">
 	<a href="/rss/site" class="list-group-item">サイト</a>
@@ -48,6 +50,7 @@
     <ul class="nav nav-tabs" role="tablist">
       <li class="active"><a href="#wp" role="tab" data-toggle="tab">WP設定</a></li>
       <li><a href="#movdefault" role="tab" data-toggle="tab">動画タグ設定</a></li>
+      <li><a href="#movlinkdefault" role="tab" data-toggle="tab">動画リンクタグ設定</a></li>
     </ul>
 
     <!-- Tab panes -->
@@ -68,7 +71,7 @@
           <p style="color:red">↑該当WPのDBにアクセス可能な右記アカウントが必要 wpaioseo/Bb8YwdfAcuaP2EPI</p><br>
 
           <div class="panel panel-success">
-            <div class="panel-heading">rssweb.net用仕様</div>
+            <div class="panel-heading">投稿制限設定</div>
             <div class="panel-body">
             {{Form::label('isEyecatch','画像投稿&アイキャッチ設定(WPのみ）')}}
             {{Form::rb('isEyecatch',array(0=>'無効',1=>'有効'),$site['isEyecatch'])}}
@@ -84,7 +87,9 @@
         <div class="alert alert-info" role="alert">投稿内容</div>
         {{Form::textField('wptitle','タイトル',$site['wptitle'])}}
         {{Form::textareaField('wpdesc','本文 - #title# / #imgurl# / #url# / #content#(スクレイピングしたデータ)',$site['wpdesc'])}}
-        {{Form::textField('catid','カテゴリID<br>FC2の場合0,5のように記載するとランダムカテゴリ指定<br>WPの場合 xhamster/fc2/xvideoカテゴリ(slug必須)を自動選択投稿、マッチしない場合カテゴリID=1で投稿(設定内容は関係なし)',$site['catid'])}}
+        {{Form::label('isPostCategory','動画サイト名をカテゴリとして送信する設定。WP側で要設定')}}
+        {{Form::rb('isPostCategory',array(0=>'カテゴリを送信しない',1=>'カテゴリを送信する'),$site['isPostCategory'])}}
+        <div style="color:red">↑送信する場合、WP側でカテゴリ  <span style="font-weight:bold">Xvideo</span>, <span style="font-weight:bold">FC2</span>, <span style="font-weight:bold">FC2ja</span>, <span style="font-weight:bold">Xhamster</span>, <span style="font-weight:bold">Redtube</span>, <span style="font-weight:bold">Erovideonet</span>, <span style="font-weight:bold">Pornhub</span>, <span style="font-weight:bold">Pipii</span>, <span style="font-weight:bold">Javynow</span>, <span style="font-weight:bold">VJAV</span>, <span style="font-weight:bold">ShareVideos</span>, <span style="font-weight:bold">TokyoTube</span>, <span style="font-weight:bold">Tube8</span>, <span style="font-weight:bold">Spankbang</span>, <span style="font-weight:bold">Youporn</span>, <span style="font-weight:bold">Txxx</span> をすべて、予め登録してください。WPにカテゴリがないと投稿に失敗します。</div>
 
         {{Form::textField('seotitle','SEO Pack title - #title# / #imgurl# / #url#',$site['seotitle'])}}
         {{Form::textField('seodesc','SEO Pack description - #title# / #imgurl# / #url#',$site['seodesc'])}}
@@ -102,6 +107,19 @@
         </div>
         @endforeach
       </div>
+      
+      <div class="tab-pane" id="movlinkdefault">
+
+        @foreach(Config::get('app.movLinkService') as $_name=>$_alias)
+        <div class="panel panel-default">
+          <div class="panel-heading">{{$_alias}}</div>
+          <div class="panel-body">
+            {{Form::textareaField($_name,'本文 #title# / #imgurl# / #url# / #movSite# / #movlink# /',$site[$_name])}}
+          </div>
+        </div>
+        @endforeach
+      </div>
+      
     </div>
 
 

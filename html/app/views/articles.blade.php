@@ -23,7 +23,7 @@
 				@foreach($articles as $item)
 			<tr>
 				<td>{{$item->id}}</td>
-				<td><a href="{{$item->url}}" target="_blank">{{$item->name}}</a> | {{$item->created_at}} | <span {{($item->posted_at!='0000-00-00 00:00:00'&&$item->movid!='none')?'style="color:red"':''}}>{{$item->posted_at}}</span> | {{$item->movSite}}<br>
+				<td><a href="{{$item->url}}" target="_blank">{{$item->name}}</a> | {{$item->created_at}} | <span {{($item->posted_at!='0000-00-00 00:00:00'&&$item->movSite!='')?'style="color:red"':''}}>{{$item->posted_at}}</span> | {{$item->movSite!=''?$item->movSite:'none'}} {{($item->movlink!='')?'link':''}} <br>
 				前：{{$item->title_org}}<br>後：{{$item->title}}</td>
 			<tr>
 				@endforeach

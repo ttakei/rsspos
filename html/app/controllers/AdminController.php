@@ -90,6 +90,24 @@ class AdminController extends BaseController {
 					case 'txxx':
 					  $sites[$column->Field] = array_get(Config::get('app.defTpl'),$column->Field);
 						break;
+					case 'xvideo__movlink':
+					case 'fc2__movlink':
+					case 'fc2ja__movlink':
+					case 'xhamster__movlink':
+					case 'redtube__movlink':
+					case 'erovideonet__movlink':
+					case 'pornhub__movlink':
+					case 'pipii__movlink':
+					case 'javynow__movlink':
+					case 'VJAV__movlink':
+					case 'ShareVideos__movlink':
+					case 'TokyoTube__movlink':
+					case 'Tube8__movlink':
+					case 'spankbang__movlink':
+					case 'youporn__movlink':
+					case 'txxx__movlink':
+					  $sites[$column->Field] = array_get(Config::get('app.defLinkTpl'),$column->Field);
+						break;
 					case 'wptitle':
 					  $sites[$column->Field] = '#title#';
 						break;
@@ -207,10 +225,10 @@ class AdminController extends BaseController {
 		// サイトに対するブログを選択
 		$blogs = Blogs::where('acc',Session::get('acc'))->orderby('in','desc')->lists('id');
 
-		$articles = Article::selectRaw("article.id, article.url, article.title, article.title_org, article.created_at, article.posted_at, blogs.name, blogs.siteurl,article.movSite,article.movid")
-		->leftJoin('blogs','blogs.id','=','article.blogid')
+		$articles = Article2::selectRaw("article2.id, article2.url, article2.title, article2.title_org, article2.created_at, article2.posted_at, blogs.name, blogs.siteurl,article2.movSite,article2.movid,article2.movlink")
+		->leftJoin('blogs','blogs.id','=','article2.blogid')
 		->where('blogs.acc',Session::get('acc'))
-		->whereIn('article.blogid',$blogs)
+		->whereIn('article2.blogid',$blogs)
 		->orderBy('created_at','DESC')
 		->paginate(30);
 
