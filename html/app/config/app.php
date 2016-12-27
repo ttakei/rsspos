@@ -79,35 +79,37 @@ return array(
 	],
 
 	'defLinkTpl' => [
-		'xvideo__movlink'=>'<a href="#movLink#">動画はこちら</a>',
+		'xvideo__movlink'=>'<a href="#movlink#">動画はこちら</a>',
 
-		'fc2__movlink'=>'<a href="#movLink#">動画はこちら</a>',
+		'fc2__movlink'=>'<a href="#movlink#">動画はこちら</a>',
 
-		'fc2ja__movlink'=>'<a href="#movLink#">動画はこちら</a>',
+		'fc2ja__movlink'=>'<a href="#movlink#">動画はこちら</a>',
 
-		'xhamster__movlink'=>'<a href="#movLink#">動画はこちら</a>',
+		'xhamster__movlink'=>'<a href="#movlink#">動画はこちら</a>',
 
-		'redtube__movlink'=>'<a href="#movLink#">動画はこちら</a>',
+		'redtube__movlink'=>'<a href="#movlink#">動画はこちら</a>',
 
-		'erovideonet__movlink'=>'<a href="#movLink#">動画はこちら</a>',
+		'erovideonet__movlink'=>'<a href="#movlink#">動画はこちら</a>',
 
-		'pornhub__movlink'=>'<a href="#movLink#">動画はこちら</a>',
+		'pornhub__movlink'=>'<a href="#movlink#">動画はこちら</a>',
 
-		'pipii__movlink'=>'<a href="#movLink#">動画はこちら</a>',
+		'pipii__movlink'=>'<a href="#movlink#">動画はこちら</a>',
 
-		'javynow__movlink'=>'<a href="#movLink#">動画はこちら</a>',
+		'javynow__movlink'=>'<a href="#movlink#">動画はこちら</a>',
 		
-		'VJAV__movlink'=>'<a href="#movLink#">動画はこちら</a>',
+		'VJAV__movlink'=>'<a href="#movlink#">動画はこちら</a>',
 		
-		'ShareVideos__movlink'=>'<a href="#movLink#">動画はこちら</a>',
+		'ShareVideos__movlink'=>'<a href="#movlink#">動画はこちら</a>',
 		
-		'TokyoTube__movlink'=>'<a href="#movLink#">動画はこちら</a>',
+		'TokyoTube__movlink'=>'<a href="#movlink#">動画はこちら</a>',
 		
-		'Tube8__movlink'=>'<a href="#movLink#">動画はこちら</a>',
+		'Tube8__movlink'=>'<a href="#movlink#">動画はこちら</a>',
 		
-		'youporn__movlink'=>'<a href="#movLink#">動画はこちら</a>',
+		'spankbang__movlink'=>'<a href="#movlink#">動画はこちら</a>',
 		
-		'txxx__movlink'=>'<a href="#movLink#">動画はこちら</a>',
+		'youporn__movlink'=>'<a href="#movlink#">動画はこちら</a>',
+		
+		'txxx__movlink'=>'<a href="#movlink#">動画はこちら</a>',
 	],
 
 	'url' => 'http://localhost',
