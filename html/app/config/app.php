@@ -105,6 +105,8 @@ return array(
 		
 		'Tube8__movlink'=>'<a href="#movLink#">動画はこちら</a>',
 		
+		'spankbang__movlink'=>'<a href="#movLink#">動画はこちら</a>',
+		
 		'youporn__movlink'=>'<a href="#movLink#">動画はこちら</a>',
 		
 		'txxx__movlink'=>'<a href="#movLink#">動画はこちら</a>',
