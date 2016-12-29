@@ -79,37 +79,37 @@ return array(
 	],
 
 	'defLinkTpl' => [
-		'xvideo__movlink'=>'<a href="#movlink#">動画はこちら</a>',
+		'xvideo__movlink'=>'<div class="entry-read"><a href="#movlink#" target="_blank">動画はこちら</a></div>',
 
-		'fc2__movlink'=>'<a href="#movlink#">動画はこちら</a>',
+		'fc2__movlink'=>'<div class="entry-read"><a href="#movlink#" target="_blank">動画はこちら</a></div>',
 
-		'fc2ja__movlink'=>'<a href="#movlink#">動画はこちら</a>',
+		'fc2ja__movlink'=>'<div class="entry-read"><a href="#movlink#" target="_blank">動画はこちら</a></div>',
 
-		'xhamster__movlink'=>'<a href="#movlink#">動画はこちら</a>',
+		'xhamster__movlink'=>'<div class="entry-read"><a href="#movlink#" target="_blank">動画はこちら</a></div>',
 
-		'redtube__movlink'=>'<a href="#movlink#">動画はこちら</a>',
+		'redtube__movlink'=>'<div class="entry-read"><a href="#movlink#" target="_blank">動画はこちら</a></div>',
 
-		'erovideonet__movlink'=>'<a href="#movlink#">動画はこちら</a>',
+		'erovideonet__movlink'=>'<div class="entry-read"><a href="#movlink#" target="_blank">動画はこちら</a></div>',
 
-		'pornhub__movlink'=>'<a href="#movlink#">動画はこちら</a>',
+		'pornhub__movlink'=>'<div class="entry-read"><a href="#movlink#" target="_blank">動画はこちら</a></div>',
 
-		'pipii__movlink'=>'<a href="#movlink#">動画はこちら</a>',
+		'pipii__movlink'=>'<div class="entry-read"><a href="#movlink#" target="_blank">動画はこちら</a></div>',
 
-		'javynow__movlink'=>'<a href="#movlink#">動画はこちら</a>',
+		'javynow__movlink'=>'<div class="entry-read"><a href="#movlink#" target="_blank">動画はこちら</a></div>',
 		
-		'VJAV__movlink'=>'<a href="#movlink#">動画はこちら</a>',
+		'VJAV__movlink'=>'<div class="entry-read"><a href="#movlink#" target="_blank">動画はこちら</a></div>',
 		
-		'ShareVideos__movlink'=>'<a href="#movlink#">動画はこちら</a>',
+		'ShareVideos__movlink'=>'<div class="entry-read"><a href="#movlink#" target="_blank">動画はこちら</a></div>',
 		
-		'TokyoTube__movlink'=>'<a href="#movlink#">動画はこちら</a>',
+		'TokyoTube__movlink'=>'<div class="entry-read"><a href="#movlink#" target="_blank">動画はこちら</a></div>',
 		
-		'Tube8__movlink'=>'<a href="#movlink#">動画はこちら</a>',
+		'Tube8__movlink'=>'<div class="entry-read"><a href="#movlink#" target="_blank">動画はこちら</a></div>',
 		
-		'spankbang__movlink'=>'<a href="#movlink#">動画はこちら</a>',
+		'spankbang__movlink'=>'<div class="entry-read"><a href="#movlink#" target="_blank">動画はこちら</a></div>',
 		
-		'youporn__movlink'=>'<a href="#movlink#">動画はこちら</a>',
+		'youporn__movlink'=>'<div class="entry-read"><a href="#movlink#" target="_blank">動画はこちら</a></div>',
 		
-		'txxx__movlink'=>'<a href="#movlink#">動画はこちら</a>',
+		'txxx__movlink'=>'<div class="entry-read"><a href="#movlink#" target="_blank">動画はこちら</a></div>',
 	],
 
 	'url' => 'http://localhost',
