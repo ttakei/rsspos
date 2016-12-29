@@ -274,10 +274,17 @@ class CronController2 extends BaseController {
 					
 					// #imgurl#
 					$imgurl = "";
-					if (preg_match($this->regex_imgurl, $description, $match)) {
-						$imgurl = $match[1];
-					} elseif (preg_match($this->regex_imgurl, $content, $match)) {
-						$imgurl = $match[1];
+					foreach (array($description, $content) as $target) {
+						if (preg_match_all($this->regex_imgurl, $target, $matches, PREG_SET_ORDER)) {
+							foreach ($matches as $match) {
+								// microadのビーコン画像無視
+								if (!isset($match[1]) || strpos($match[1], "microad") !== false) {
+									continue;
+								}
+								$imgurl = $match[1];
+								break;
+							}
+						}
 					}
 					
 					// ここまでこれた記事のみ取得を試みる
@@ -708,6 +715,7 @@ EOS
 							'msg' => $client_ixr->getErrorCode(). ': '. $client_ixr->getErrorMessage(),
 							'article' => $article,
 						);
+						Article2::where('id', $article->id)->update(array('new' => 0));
 						continue;
 					}
 					$img_ixr = $client_ixr->getResponse();
@@ -729,6 +737,7 @@ EOS
 							'msg' => $client_ixr->getErrorCode(). ': '. $client_ixr->getErrorMessage(),
 							'article' => $article,
 						);
+						Article2::where('id', $article->id)->update(array('new' => 0));
 						continue;
 					}
 					$thumb_ixr = $client_ixr->getResponse();
