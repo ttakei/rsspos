@@ -168,7 +168,7 @@ class CronController2 extends BaseController {
 				$rss_list_error[] = $rssurl;
 			}
 		}
-		//echo("<pre>rss fetch done</pre>\n");
+		echo("<pre>rss fetch done</pre>\n");
 		
 		// rss parse
 		foreach ($rss_list as $rssurl => $rss) {
@@ -192,8 +192,11 @@ class CronController2 extends BaseController {
 				$created_at = $item->get_date('Y-m-d H:i:s');
 				
 				$tag_arr = array();
-				foreach ($item->get_categories() as $item_tag) {
-					$tag_arr[] = $item_tag->get_label();
+				$categories = $item->get_categories();
+				if (is_array($categories)) {
+					foreach ($categories as $item_tag) {
+						$tag_arr[] = $item_tag->get_label();
+					}
 				}
 				$tag = implode(',', $tag_arr);
 				
@@ -298,7 +301,7 @@ class CronController2 extends BaseController {
 				}
 			}
 		}
-		//echo("<pre>rss parse done</pre>\n");
+		echo("<pre>rss parse done</pre>\n");
 
 		// blog fetch
 		if ($this->multiFetch(array_keys($blog_articles), $blog_articles, $blog_articles_error['fetch']) !== true) {
@@ -311,7 +314,7 @@ class CronController2 extends BaseController {
 				$blog_articles_error['fetch'][] = $url;
 			}
 		}
-		//echo("<pre>blog fetch done</pre>\n");
+		echo("<pre>blog fetch done</pre>\n");
 
 		// DB登録データ作成
 		$utime = time();
@@ -378,7 +381,7 @@ class CronController2 extends BaseController {
 								'name' => $no_actress->name,
 							);
 						}
-						$randnum = rand(0, $rate_sum);
+						$randnum = rand(0, $rate_sum - 1);
 						foreach ($rates as $rate) {
 							if ($rate['rate'] > $randnum) {
 								$format = str_replace('#actress#', $rate['name'], $format);
@@ -415,7 +418,7 @@ class CronController2 extends BaseController {
 				);
 			}
 		}
-		//echo("<pre>make db data done</pre>\n");
+		echo("<pre>make db data done</pre>\n");
 		
 //		var_dump($db_articles);
 //		var_dump($blog_articles_error);
@@ -587,6 +590,16 @@ EOS
 						// 動画テンプレートを使う
 						$col = $article->movSite;
 						$wpdesc = $site->$col;
+						$wpdesc_trim = trim(mb_convert_kana($wpdesc, 's', 'UTF-8'));
+						if (empty($wpdesc_trim)) {
+							$article_ignore[] = array(
+								'reason' => 'empty movie template',
+								'acc' => $site->acc,
+								'article' => $article,
+							);
+							Article2::where('id', $article->id)->update(array('new' => 0));
+							continue;
+						}
 						$wpdesc = str_replace('#title#', $article->title, $wpdesc);
 						$wpdesc = str_replace('#imgurl#', $article->imgurl, $wpdesc);
 						$wpdesc = str_replace('#url#', $article->url, $wpdesc);
@@ -596,6 +609,16 @@ EOS
 						// 動画リンクテンプレートを使う
 						$col = $article->movSite. '__movlink';
 						$wpdesc = $site->$col;
+						$wpdesc_trim = trim(mb_convert_kana($wpdesc, 's', 'UTF-8'));
+						if (empty($wpdesc_trim)) {
+							$article_ignore[] = array(
+								'reason' => 'empty movie link template',
+								'acc' => $site->acc,
+								'article' => $article,
+							);
+							Article2::where('id', $article->id)->update(array('new' => 0));
+							continue;
+						}
 						$wpdesc = str_replace('#title#', $article->title, $wpdesc);
 						$wpdesc = str_replace('#imgurl#', $article->imgurl, $wpdesc);
 						$wpdesc = str_replace('#url#', $article->url, $wpdesc);
@@ -804,6 +827,11 @@ EOS
 		$min_number = 0;  // 空いている配列の最小要素番号
 		foreach ($urls as $url) {
 			$url_parsed = parse_url($url);
+			if ($url_parsed === false || empty($url_parsed['host'])) {
+				$urls_error[$url] = true;
+				echo("<pre>invalid url $url</pre>\n");
+				continue;
+			}
 			$domain = $url_parsed['host'];
 			if (!isset($domain_cur[$domain]['cnt'])) {
 				// 全体を通して初めてのドメイン
