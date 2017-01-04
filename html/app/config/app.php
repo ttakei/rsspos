@@ -2,7 +2,7 @@
 
 return array(
 
-	'debug' => array_key_exists('REMOTE_ADDR', $_SERVER)?in_array($_SERVER['REMOTE_ADDR'], array('124.101.195.11','180.214.224.5')):false,
+	'debug' => array_key_exists('REMOTE_ADDR', $_SERVER)?in_array($_SERVER['REMOTE_ADDR'], array('124.101.195.11','180.214.224.5','124.97.12.102')):false,
 
 	'movService'=>[
 		//'movdefault'=>'該当なし',
@@ -111,13 +111,10 @@ return array(
 		
 		'txxx__movlink'=>'<div class="entry-read"><a href="#movlink#" target="_blank">動画はこちら</a></div>',
 	],
-	
 	'url' => 'http://localhost',
 
 	'timezone' => 'Asia/Tokyo',
-
 	'locale' => 'ja',
-
 	'key' => 'bYYT8UZz4AG9a0iEzO9XBXIvWndH83Wv',
 
 	'providers' => array(
@@ -150,9 +147,7 @@ return array(
 		'Illuminate\Workbench\WorkbenchServiceProvider',
 'Barryvdh\Debugbar\ServiceProvider',
 	),
-
 	'manifest' => storage_path().'/meta',
-
 	'aliases' => array(
 
 		'App'             => 'Illuminate\Support\Facades\App',

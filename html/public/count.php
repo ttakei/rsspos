@@ -1,6 +1,6 @@
 <?php
 
-// OUT‘¤‚Ìˆ—
+// OUTå´ã®å‡¦ç†
 
 require("db.php");
 
@@ -25,10 +25,10 @@ if($url!=''){
 	}
 	$nowLog = array('url'=>$url,'acc'=>$id,'utime'=>time(),'ip'=>$_SERVER['REMOTE_ADDR'],'blogid'=>$matchID); 
 	$log[] = $nowLog;
-	apc_store('rsswdg_outlog_raw_'.$id, serialize($log), 3600*24);	// 24ŽžŠÔ–ˆ
+	apc_store('rsswdg_outlog_raw_'.$id, serialize($log), 3600*24);	// 24æ™‚é–“æ¯Ž
 }
 
-// ƒTƒCƒgOUT
+// ã‚µã‚¤ãƒˆOUT
 $cntAry = array();
 if($matchID!=0){
 	if(!$_cnt=apc_fetch("rsswdg_outlog_".$id)){

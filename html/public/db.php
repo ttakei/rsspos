@@ -23,9 +23,7 @@ function upip($id){
 	}
 	$d[]=$_SERVER['REMOTE_ADDR'];
 
-	if($_SERVER['REMOTE_ADDR']!='180.19.234.71'){
-		apc_store("rsswdg_in_ip_".$id,serialize($d),3600*24);
-	}
+	apc_store("rsswdg_in_ip_".$id,serialize($d),3600*24);
 }
 
 // IPデータ取得
