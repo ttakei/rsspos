@@ -17,6 +17,7 @@
         <td>メールアドレス</td>
         <td>パスワード</td>
         <td>操作サイト</td>
+        <td>権限</td>
         <td>操作</td>
       </tr>
         @if(count($userObj) > 0)
@@ -29,7 +30,7 @@
         @foreach($user->sites as $usite)
           {{$usite->site->name or ''}}<br>
         @endforeach
-        </td>
+        <td>{{$user->role}}</td>
         </td>
         <td>
           <a href="{{route('admin.user.edit',['id'=>$user->id])}}"><span class="glyphicon glyphicon-cog"></span></a>

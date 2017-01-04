@@ -81,7 +81,8 @@ Route::filter('csrf', function()
 
 Route::filter('myauth', function()
 {
-	if (Session::get('user')=='') return Redirect::to('/');	// ユーザニックネーム
+	if (Session::get('nickname')=='') return Redirect::to('/');	// ユーザニックネーム
+	//if (Session::get('user')=='') return Redirect::to('/');	// ユーザニックネーム
 	//if (Session::get('acc')=='') return Redirect::to('/'); 	// サイトアカウント
 });
 
