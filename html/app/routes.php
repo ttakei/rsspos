@@ -267,7 +267,7 @@ Route::post('/login', function()
 		Session::put('user', $res[0]->id);
 		Session::put('nickname', $res[0]->nickname);
 		Session::put('role',$res[0]->role);
-		return Redirect::intended('/rss');
+		return Redirect::intended('/rss/site');
 	}else{
 		return Redirect::back()->withInput();
 	}
@@ -299,6 +299,10 @@ Route::get('rss/site',['before'=>'admauth','uses'=>'AdminController@site','as'=>
 Route::get('rss/site/edit/{id?}',['before'=>'admauth','uses'=>'AdminController@siteEdit','as'=>'site.edit']);
 Route::post('rss/site/edit',['uses'=>'AdminController@sitePost','as'=>'site.update']);
 Route::get('rss/site/del/{id?}',['before'=>'admauth','uses'=>'AdminController@siteDel','as'=>'site.del']);
+Route::post('/rss/site',array('before'=>'csrf',function(){
+	Session::put('acc',Input::get('acc'));
+	return Redirect::to('/rss/blog');
+}));
 
 /////////////////////////////////////////////////////////////////////
 // ブログ
@@ -505,8 +509,30 @@ Route::get('rss/refloop',['uses'=>'AdminController@refloop','as'=>'refloop']);
 Route::get('rss/refer/{id}',['uses'=>'AdminController@refer','as'=>'refer']);
 Route::get('rss/referall/{id}',['uses'=>'AdminController@referall','as'=>'referall']);
 
+/////////////////////////////////////////////////////////////////////
+// NGワード
+Route::get('rss/ngword',['uses'=>'AdminController@ngword','as'=>'ngword']);
+Route::get('rss/ngword/edit/{id?}',['uses'=>'AdminController@ngwordEdit','as'=>'ngword.edit']);
+Route::post('rss/ngword/edit',['uses'=>'AdminController@ngwordPost']);
+Route::get('rss/ngword/del/{id}',['uses'=>'AdminController@ngwordDel','as'=>'ngword.del']);
+Route::get('rss/postword',['uses'=>'AdminController@postword','as'=>'postword']);
+Route::get('rss/postword/edit/{id?}',['uses'=>'AdminController@postwordEdit','as'=>'postword.edit']);
+Route::post('rss/postword/edit',['uses'=>'AdminController@postwordPost']);
+Route::get('rss/postword/del/{id}',['uses'=>'AdminController@postwordDel','as'=>'postword.del']);
+
+/////////////////////////////////////////////////////////////////////
+// 女優名
+Route::get('rss/actress',['uses'=>'AdminController@actress','as'=>'actress']);
+Route::get('rss/actress/edit/{id?}',['uses'=>'AdminController@actressEdit','as'=>'actress.edit']);
+Route::post('rss/actress/edit',['uses'=>'AdminController@actressPost']);
+Route::get('rss/actress/del/{id}',['uses'=>'AdminController@actressDel','as'=>'actress.del']);
+Route::get('rss/noActress',['uses'=>'AdminController@noActress','as'=>'noActress']);
+Route::get('rss/noActress/edit/{id?}',['uses'=>'AdminController@noActressEdit','as'=>'noActress.edit']);
+Route::post('rss/noActress/edit',['uses'=>'AdminController@noActressPost']);
+Route::get('rss/noActress/del/{id}',['uses'=>'AdminController@noActressDel','as'=>'noActress.del']);
 
 /////////////////////////////////////////////////////////////////////
 // RSS取得、サイト投稿
+Route::get('cron/cnt',['uses'=>'CronController@cnt','as'=>'cron.cnt']);
 Route::get('cron/rssGet2',['uses'=>'CronController2@rssGet','as'=>'cron.rssGet2']);
 Route::get('cron/rssPost2',['uses'=>'CronController2@rssPost','as'=>'cron.rssPost2']);
