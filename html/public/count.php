@@ -1,33 +1,53 @@
-<?php //0046a
-if(!extension_loaded('ionCube Loader')){$__oc=strtolower(substr(php_uname(),0,3));$__ln='ioncube_loader_'.$__oc.'_'.substr(phpversion(),0,3).(($__oc=='win')?'.dll':'.so');if(function_exists('dl')){@dl($__ln);}if(function_exists('_il_exec')){return _il_exec();}$__ln='/ioncube/'.$__ln;$__oid=$__id=realpath(ini_get('extension_dir'));$__here=dirname(__FILE__);if(strlen($__id)>1&&$__id[1]==':'){$__id=str_replace('\\','/',substr($__id,2));$__here=str_replace('\\','/',substr($__here,2));}$__rd=str_repeat('/..',substr_count($__id,'/')).$__here.'/';$__i=strlen($__rd);while($__i--){if($__rd[$__i]=='/'){$__lp=substr($__rd,0,$__i).$__ln;if(file_exists($__oid.$__lp)){$__ln=$__lp;break;}}}if(function_exists('dl')){@dl($__ln);}}else{die('The file '.__FILE__." is corrupted.\n");}if(function_exists('_il_exec')){return _il_exec();}echo('Site error: the file <b>'.__FILE__.'</b> requires the ionCube PHP Loader '.basename($__ln).' to be installed by the website operator. If you are the website operator please use the <a href="http://www.ioncube.com/lw/">ionCube Loader Wizard</a> to assist with installation.');exit(199);
-?>
-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
+<?php
+
+// OUTë§ÇÃèàóù
+
+require("db.php");
+
+$id = $_GET['id'];	// acc
+$url= $_POST['url'];
+
+$matchID = 0;
+if(BID_MATCH){
+	$ref = blogRefer($id);
+	foreach($ref as $k=>$v){
+		foreach($v as $kk=>$vv){
+			if(preg_match("@$vv@",$url,$m)){
+				$matchID = $kk;
+			}
+		}
+	}
+}
+
+if($url!=''){
+	if($log = apc_fetch("rsswdg_outlog_raw_".$id)){
+		$log = unserialize($log);
+	}
+	$nowLog = array('url'=>$url,'acc'=>$id,'utime'=>time(),'ip'=>$_SERVER['REMOTE_ADDR'],'blogid'=>$matchID); 
+	$log[] = $nowLog;
+	apc_store('rsswdg_outlog_raw_'.$id, serialize($log), 3600*24);	// 24éûä‘ñà
+}
+
+// ÉTÉCÉgOUT
+$cntAry = array();
+if($matchID!=0){
+	if(!$_cnt=apc_fetch("rsswdg_outlog_".$id)){
+		$cntAry[$matchID]=1;
+	}else{
+		$cntAry = unserialize($_cnt);
+		$cntAry[$matchID]+=1;
+	}
+	apc_store('rsswdg_outlog_'.$id,serialize($cntAry),3600*24);
+}
+
+/*echo '<h3>outlog_raw</h3>';
+var_dump(unserialize(apc_fetch("rsswdg_outlog_raw_".$id)));
+echo '<h3>inlog_raw</h3>';
+var_dump(unserialize(apc_fetch("rsswdg_inlog_raw_".$id)));
+
+echo '<h3>inlog</h3>';
+var_dump(unserialize(apc_fetch("rsswdg_inlog_".$id)));
+echo '<h3>outlog</h3>';
+var_dump(unserialize(apc_fetch("rsswdg_outlog_".$id)));
+*/
+var_dump($nowLog);

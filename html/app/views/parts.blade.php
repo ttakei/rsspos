@@ -9,7 +9,7 @@
 	<div class="panel-heading">パーツ一覧</div>
 	<div class="panel-body">
 		<div class="text-left clr10">
-	  <div class="btn btn-default"><a href="{{route('partsedit')}}">パーツ追加</a></div>
+	  <div class="btn btn-default"><a href="{{route('parts.edit')}}">パーツ追加</a></div>
 	  </div>
 		<table class="tablesorter table table-striped" width="100%" border="0">
 			<tr>
