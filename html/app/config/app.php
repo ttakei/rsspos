@@ -111,12 +111,12 @@ return array(
 		
 		'txxx__movlink'=>'<div class="entry-read"><a href="#movlink#" target="_blank">動画はこちら</a></div>',
 	],
+	
 	'url' => 'http://localhost',
 
 	'timezone' => 'Asia/Tokyo',
 	'locale' => 'ja',
 	'key' => 'bYYT8UZz4AG9a0iEzO9XBXIvWndH83Wv',
-
 	'providers' => array(
 
 		'Illuminate\Foundation\Providers\ArtisanServiceProvider',
