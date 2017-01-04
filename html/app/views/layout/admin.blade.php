@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
-	<title>{{ $_cfg['ASP_NAME'] }}</title>
+	<title>{{ $cfg['ASP_NAME'] }}</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	@yield('css')
 	{{ HTML::style('packages/bootstrap/css/bootstrap.min.css', array('media' => 'screen')) }}
@@ -20,24 +20,24 @@
 <div id="wrap">
 <nav class="navbar navbar-default" role="navigation">
 	<div class="navbar-header">
-		<a class="navbar-brand" href="/rss">{{$_cfg['ASP_NAME']}}</a>
+		<a class="navbar-brand" href="/rss">{{$cfg['ASP_NAME']}}</a>
 	</div>
 	<ul class="nav navbar-nav">
-		<p class="navbar-text">{{$_cfg['nickname']}}ログイン中</p>
+		<p class="navbar-text">{{$cfg['nickname']}}ログイン中</p>
 		@if(Session::get('role')=='admin')
 		<li><a href="{{route('mypage')}}">マイページ</a></li>
-		<li><a href="/rss/site">サイト管理</a></li>
-		<li><a href="/cron/rssGet.php" target="_blank">①RSS手動取得</a></li>
-		<li><a href="/cron/rssGet2.php" target="_blank">②動画タグ手動取得</a></li>
-		<li><a href="/cron/posts.php" target="_blank">③手動投稿</a></li>
-		<li><a href="/replace">置換設定</a></li>
-		<li><a href="/admin/user">ライター設定</a></li>
+		<li><a href="{{route('site')}}">サイト管理</a></li>
+		<li><a href="{{route('cron.rssGet2')}}" target="_blank">RSS手動取得(新)</a></li>
+		<li><a href="{{route('cron.rssPost2')}}" target="_blank">手動投稿(新)</a></li>
+		<li><a href="{{route('replace')}}">置換設定</a></li>
+		<li><a href="{{route('actress')}}">女優名設定</a></li>
+		<li><a href="{{route('admin.user.index')}}">ユーザー設定</a></li>
 		@endif
 		<li><a href="{{route('logout')}}">ログアウト</a></li>
 	</ul>
 </nav>
 
-<div class="container" style="width:auto">
+<div class="container">
 <div class="row">
 <div class="content col-lg-12">
 <div class="side col-lg-3">
@@ -47,18 +47,25 @@
 	<div class="panel panel-default panel-primary info clr10">
 		<div class="panel-heading">現在のサイト</div>
 		{{Form::open(array('url' => '/rss/site', 'method' => 'post'))}}
-			{{$_cfg['HTMLselectsite']}}
+			{{$cfg['HTMLselectsite']}}
 		{{Form::close()}}
 	</div>
 
-	<div class="panel panel-default panel-primary info clr10 {{$cfg['selected']}}">
+	@if(Session::has('acc'))
+	<div class="panel panel-default panel-primary info clr10 {{$cfg['selected'] or 'hide'}}">
 		<div class="panel-heading">サイトメニュー</div>
 		<ul class="list-group">
 		@if(Session::get('role')=='admin')
-			<li class="list-group-item"><a href="{{route('bloglist')}}" class="">ブログリスト</a></li>
-			<li class="list-group-item"><a href="{{route('partslist')}}" class="">パーツリスト</a></li>
-			<li class="list-group-item"><a href="{{route('refloop')}}" class="">リファリスト</a></li>
+			<li class="list-group-item"><a href="{{route('blog')}}" class="">ブログリスト</a></li>
+			@if(!empty($cfg['manual'])
 			<li class="list-group-item"><a href="{{route('writer.check')}}" class="">ライターチェック</a></li>
+			@endif
+			<li class="list-group-item"><a href="{{route('article')}}" class="">記事リスト</a></li>
+			<li class="list-group-item"><a href="{{route('ngword')}}" class="">取込除外ワード</a></li>
+			<li class="list-group-item"><a href="{{route('postword')}}" class="">投稿ワード</a></li>
+			<li class="list-group-item"><a href="{{route('noActress')}}" class="">NON女優名設定</a></li>
+			<li class="list-group-item"><a href="/cron/rssGet2?acc={{Session::get('acc')}}" class="">RSS手動取得</a></li>
+			<li class="list-group-item"><a href="/cron/rssPost2?acc={{Session::get('acc')}}" class="">手動投稿</a></li>
 		@endif
 			<li class="list-group-item"><a href="{{route('articlelist')}}" class="">記事リスト</a></li>
 		</ul>

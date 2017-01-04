@@ -11,6 +11,8 @@
 |
 */
 
+$cfg['manual'] = true;
+
 //Route::when('/', 'myauth');
 //*/15 * * * * curl http://rssweb.net/cron/cnt.php
 //5,35 * * * * curl http://rssweb.net/cron/rssGet.php;curl http://rssweb.net/cron/rssGet2.php
@@ -310,31 +312,13 @@ Route::get('/wppost',function()
 
 });
 
-/////////////////////////////////////////////////////////////////////
-// マイページ編集
-/////////////////////////////////////////////////////////////////////
-
-Route::post('/mypage/edit', array(function()
-{
-	$id = Input::get('id');
-
-	$input = Input::except('_token','id');
-
-	// nicknameが変わる可能性あるので
-	Session::put('nickname',Input::get('nickname'));
-
-	if(isset($id) && $id!=0){
-		Users::where('id',$id)->update($input);
-	}
-
-	return Redirect::to('/mypage');
-}));
 
 /////////////////////////////////////////////////////////////////////
 // マイページ
-/////////////////////////////////////////////////////////////////////
 
-
+Route::get('mypage',['before'=>'myauth','uses'=>'AdminController@mypage','as'=>'mypage']);
+Route::post('mypage/edit',['uses'=>'AdminController@mypagePost']);
+/*
 Route::get('/mypage', array('before'=>'myauth','as'=>'mypage',function()
 {
 	$cfg['nickname']=Session::get('nickname');
@@ -360,15 +344,29 @@ Route::get('/mypage', array('before'=>'myauth','as'=>'mypage',function()
 	return View::make('mypage',array('news'=>$news,'cfg'=>$cfg,'sites'=>$sites,'user'=>$user));
 
 }));
+Route::post('/mypage/edit', array(function()
+{
+	$id = Input::get('id');
 
+	$input = Input::except('_token','id');
 
+	// nicknameが変わる可能性あるので
+	Session::put('nickname',Input::get('nickname'));
 
+	if(isset($id) && $id!=0){
+		Users::where('id',$id)->update($input);
+	}
+
+	return Redirect::to('/mypage');
+}));
+*/
 
 
 /////////////////////////////////////////////////////////////////////
-// rssTOP画面
-/////////////////////////////////////////////////////////////////////
+// サイト
 
+Route::get('rss',['before'=>'myauth','uses'=>'AdminController@top','as'=>'top']);
+/*
 Route::get('/rss', array('before'=>'myauth','as'=>'rssselect',function()
 {
 	//var_dump(Session::all());
@@ -385,11 +383,8 @@ Route::get('/rss', array('before'=>'myauth','as'=>'rssselect',function()
 
 	return View::make('rss',array('news'=>$news,'cfg'=>$cfg,'sites'=>$sites));
 }));
-
-/////////////////////////////////////////////////////////////////////
-// サイト選択フォーム
-/////////////////////////////////////////////////////////////////////
-
+*/
+/*
 Route::post('/rss/site',array('before'=>'csrf',function(){
 	Session::put('acc',Input::get('acc'));
 
@@ -399,8 +394,9 @@ Route::post('/rss/site',array('before'=>'csrf',function(){
 		return Redirect::to('/rss/blog');
 	}
 }));
-
-
+*/
+Route::get('rss/site',['before'=>'admauth','uses'=>'AdminController@site','as'=>'site']);
+/*
 Route::get('/rss/site',array('before'=>'admauth','as'=>'sitelist',function()
 {
 	//dd(Session::all());
@@ -416,7 +412,9 @@ Route::get('/rss/site',array('before'=>'admauth','as'=>'sitelist',function()
 	return View::make('site',array('cfg'=>$cfg,'sites'=>$sites));
 
 }));
-
+*/
+Route::get('rss/site/edit/{id?}',['before'=>'admauth','uses'=>'AdminController@siteEdit','as'=>'site.edit']);
+/*
 Route::get('/rss/site/edit/{id?}',array('before'=>'admauth','as'=>'siteedit',function($id=0)
 {
 	$cfg['nickname']=Session::get('nickname');
@@ -459,7 +457,9 @@ Route::get('/rss/site/edit/{id?}',array('before'=>'admauth','as'=>'siteedit',fun
 	//return View::make('siteedit',array('cfg'=>$cfg,'news'=>$news,'site'=>$sites,'itemSelect'=>$itemSelect,'shifts'=>$shifts));
 
 }))->where('id','[0-9]+');
-
+*/
+Route::post('rss/site/edit',['uses'=>'AdminController@sitePost','as'=>'site.update']);
+/*
 Route::post('/rss/site/edit',function()
 {
 	//dd(Session::all());
@@ -488,18 +488,22 @@ Route::post('/rss/site/edit',function()
 	}
 	return Redirect::to('/rss/site');
 });
-
+*/
+Route::get('rss/site/del/{id?}',['before'=>'admauth','uses'=>'AdminController@siteDel','as'=>'site.del']);
+/*
 Route::get('/rss/site/del/{id}',array('before'=>'admauth',function($id)
 {
 	Sites::destroy($id);
 	UserSites::where('site_id',$id)->delete();
 	return Redirect::to('/rss/site');
 }))->where('id','[0-9]+');
+*/
+
 
 /////////////////////////////////////////////////////////////////////
-// ブログリスト
-/////////////////////////////////////////////////////////////////////
-
+// ブログ
+Route::get('rss/blog',['before'=>'admauth','uses'=>'AdminController@blog','as'=>'blog']);
+/*
 Route::get('/rss/blog',array('before'=>'admauth','as'=>'bloglist',function()
 {
 	$cfg['nickname']=Session::get('nickname');
@@ -524,43 +528,9 @@ Route::get('/rss/blog',array('before'=>'admauth','as'=>'bloglist',function()
 	return View::make('blog',array('cfg'=>$cfg,'blogs'=>$blogs,'cnt'=>$cnt));
 
 }));
-
-Route::get('/rss/refloop',array('before'=>'admauth','as'=>'refloop',function()
-{
-	$cfg['nickname']=Session::get('nickname');
-	$cfg['ASP_NAME']='RSS Widget';
-	$cfg['selected']='';
-
-	// $s1 = sprintf("SELECT url,count(*) as cnt FROM rsswidget.inalllog WHERE acc = '%s' GROUP BY url ORDER BY cnt DESC",$id);
-	$anly = DB::select("SELECT url,count(*) as cnt FROM inalllog WHERE acc = ? GROUP BY url ORDER BY cnt DESC",[Session::get('acc')]);
-	//var_dump($anl);
-	$blogs = Blogs::where('acc',Session::get('acc'))->orderby('in','desc')->get();
-
-	$cnt['in'] = Blogs::where('acc',Session::get('acc'))->sum('in');
-	$cnt['out'] = Blogs::where('acc',Session::get('acc'))->sum('out');
-	$pv = DB::select("SELECT count(*) as cnt FROM inalllog WHERE acc=?",[Session::get('acc')]);
-	foreach($pv as $v){ $cnt['pv']=$v->cnt;}
-
-	//dd(Session::get('acc'));
-
-	// サイトセレクト
-	$cfg['HTMLselectsite'] = siteList1();
-
-	return View::make('refloop',array('cfg'=>$cfg,'blogs'=>$blogs,'anly'=>$anly,'cnt'=>$cnt));
-
-}));
-
-// これがあると干渉する
-/*Route::get('/rss/blog/{id?}',function($id)
-{
-	Session::put('acc',$id);
-	return Redirect::to('/rss/blog');
-});*/
-
-/////////////////////////////////////////////////////////////////////
-// ブログ編集・追加
-/////////////////////////////////////////////////////////////////////
-
+*/
+Route::get('rss/blog/edit/{id?}',['before'=>'admauth','uses'=>'AdminController@blogEdit','as'=>'blog.edit']);
+/*
 Route::get('/rss/blog/edit/{id?}',array('before'=>'admauth','as'=>'blogedit',function($id=0)
 {
 	$cfg['nickname']=Session::get('nickname');
@@ -584,7 +554,9 @@ Route::get('/rss/blog/edit/{id?}',array('before'=>'admauth','as'=>'blogedit',fun
 	}
 
 }));
-
+*/
+Route::post('rss/blog/edit',['uses'=>'AdminController@blogPost']);
+/*
 Route::post('/rss/blog/edit',function()
 {
 	$id = Input::get('id');
@@ -613,23 +585,22 @@ Route::post('/rss/blog/edit',function()
 	}
 	return Redirect::to('/rss/blog');
 });
-
-/////////////////////////////////////////////////////////////////////
-// ブログ削除
-/////////////////////////////////////////////////////////////////////
-
+*/
+Route::get('rss/blog/del/{id}',['before'=>'admauth','uses'=>'AdminController@blogDel','as'=>'blog.del']);
+/*
 Route::get('/rss/blog/del/{id}',array('before'=>'admauth',function($id)
 {
 	Blogs::destroy($id);
 	return Redirect::to('/rss/blog');
 }))->where('id','[0-9]+');
-
+*/
 
 
 /////////////////////////////////////////////////////////////////////
-// 記事リスト
-/////////////////////////////////////////////////////////////////////
+// 記事
 
+Route::get('rss/article',['before'=>'myauth','uses'=>'AdminController@article','as'=>'article']);
+/*
 Route::get('/rss/article', array('before'=>'myauth','as'=>'articlelist',function()
 {
 	$cfg['nickname']=Session::get('nickname');
@@ -652,7 +623,9 @@ Route::get('/rss/article', array('before'=>'myauth','as'=>'articlelist',function
 
 	return View::make('articles',array('cfg'=>$cfg,'articles'=>$articles));
 }));
+*/
 
+// TODO: AdminContollerに処理を移す
 Route::get('/rss/article/edit/{id?}',array('before'=>'myauth','as'=>'article.edit',function($id=0)
 {
 	$cfg['nickname']=Session::get('nickname');
@@ -715,6 +688,7 @@ Route::get('/rss/article/edit/{id?}',array('before'=>'myauth','as'=>'article.edi
 
 }));
 
+// TODO: AdminContollerに処理を移す
 Route::post('/rss/article/edit',function()
 {
 	//dd(Input::all());
@@ -796,6 +770,7 @@ Route::post('/rss/article/edit',function()
 	return Redirect::to('/rss/article');
 });
 
+// TODO: AdminContollerに処理を移す
 Route::get('/rss/article/del/{id}',array('before'=>'myauth',function($id)
 {
 	Article::destroy($id);
@@ -803,6 +778,7 @@ Route::get('/rss/article/del/{id}',array('before'=>'myauth',function($id)
 }))->where('id','[0-9]+');
 
 
+// TODO: AdminContollerに処理を移す
 Route::get('/rss/check',['before'=>'admauth','as'=>'writer.check',function(){
 	//$cfg['nickname']=Session::get('nickname');
 	//$cfg['ASP_NAME']='RSS Widget';
@@ -827,89 +803,24 @@ Route::get('/rss/check',['before'=>'admauth','as'=>'writer.check',function(){
 	return View::make('check.index',array('cfg'=>$cfg,'articles'=>$articles));
 }]);
 
-/////////////////////////////////////////////////////////////////////
-// パーツリスト
-/////////////////////////////////////////////////////////////////////
-
-Route::get('/rss/parts', array('before'=>'admauth','as'=>'partslist',function()
-{
-	$cfg['nickname']=Session::get('nickname');
-	$cfg['ASP_NAME']='RSS Widget';
-	$cfg['selected']='';
-
-	// サイトセレクト
-	$cfg['HTMLselectsite'] = siteList1();
-
-	$parts = Parts::where('acc',Session::get('acc'))->get();
-
-	return View::make('parts',array('cfg'=>$cfg,'parts'=>$parts));
-}));
-
-/////////////////////////////////////////////////////////////////////
-// パーツ削除
-/////////////////////////////////////////////////////////////////////
-
-Route::get('/rss/parts/del/{id}',array('before'=>'admauth',function($id)
-{
-	Parts::destroy($id);
-	return Redirect::to('/rss/parts');
-}))->where('id','[0-9]+');
 
 /////////////////////////////////////////////////////////////////////
 // パーツ修正・追加
+
+Route::get('rss/parts',['uses'=>'AdminController@parts','as'=>'parts']);
+Route::get('rss/parts/edit/{id?}',['uses'=>'AdminController@partsEdit','as'=>'parts.edit']);
+Route::post('rss/parts/edit',['uses'=>'AdminController@partsPost']);
+Route::get('rss/parts/del/{id}',['uses'=>'AdminController@partsDel','as'=>'parts.del']);
+
+
 /////////////////////////////////////////////////////////////////////
+// 置換設定
 
-Route::get('/rss/parts/edit/{id?}',array('before'=>'admauth','as'=>'partsedit',function($id=0)
-{
-	$cfg['nickname']=Session::get('nickname');
-	$cfg['ASP_NAME']='RSS Widget';
-	$cfg['selected']='';
-
-	// サイトセレクト
-	$cfg['HTMLselectsite'] = siteList1();
-
-	if($id!=0){
-		$parts = Parts::where('acc',Session::get('acc'))->where('id',$id)->get();
-		return View::make('partsedit',array('cfg'=>$cfg,'parts'=>$parts[0]));
-	}else{
-		$parts = array('id'=>'','name'=>'','tpl'=>'','adline1'=>'','adtpl1'=>'','adline2'=>'','adtpl2'=>'','adline3'=>'','adtpl3'=>'');
-		return View::make('partsedit',array('cfg'=>$cfg,'parts'=>$parts));
-	}
-}))->where('id','[0-9]+');
-
-Route::post('/rss/parts/edit',function()
-{
-	$id = Input::get('id');
-
-	$input = Input::except('_token','id');
-
-	if(isset($id) && $id!=''){
-		Parts::where('id',$id)
-		->where('acc',Session::get('acc'))
-		->update($input);
-	}else{
-
-		$input['acc']=Session::get('acc');
-		Parts::create($input);
-
-	}
-	apc_delete("rsswdg_parts_".$id);
-	return Redirect::to('/rss/parts');
-});
-
-
-Route::get('/info',function()
-{
-	echo 'utime:'.time().'<br>';
-	//phpinfo();
-	return 'end';
-});
-
-
-
-	///////////////////////////////////////////////////////////////////////
-	// 置換設定
-
+Route::get('rss/replace',['uses'=>'AdminController@replace','as'=>'replace']);
+Route::get('rss/replace/edit/{id?}',['uses'=>'AdminController@replaceEdit','as'=>'replace.edit']);
+Route::post('rss/replace/edit',['uses'=>'AdminController@replacePost']);
+Route::get('rss/replace/del/{id}',['uses'=>'AdminController@replaceDel','as'=>'replace.del']);
+/*
 Route::get('/replace',function()
 {
 	$cfg['nickname']=Session::get('nickname');
@@ -971,42 +882,19 @@ Route::get('/replace/delete/{id}',function($id=0)
 	ReplaceWords::destroy($id);
 	return Redirect::to('/replace');
 });
+*/
 
-Route::get('/rss/refer/{id}',array('before'=>'admauth','as'=>'referlist',function($id='')
-{
-	$cfg['nickname']=Session::get('nickname');
-	$cfg['ASP_NAME']='RSS Widget';
-	$cfg['selected']='';
-	$cfg['id'] = $id;
 
-	//$anly = Inalllog::where('acc',Session::get('acc'))->where('url',"http://".$id."/")->paginate(50);
-	//$anly = DB::select("SELECT * FROM inalllog WHERE acc = ? AND url = ?",[Session::get('acc'),"http://".$id."/"]);
+/////////////////////////////////////////////////////////////////////
+// リファラ設定
 
-	///$anly = DB::table('inalllog')->where('acc','=',Session::get('acc'))->where('url','=',"http://".$id."/")->orderby('utime','desc')->paginate(50);
+Route::get('rss/refloop',['uses'=>'AdminController@refloop','as'=>'refloop']);
+Route::get('rss/refer/{id}',['uses'=>'AdminController@refer','as'=>'refer']);
+Route::get('rss/referall/{id}',['uses'=>'AdminController@referall','as'=>'referall']);
 
-	// refer毎の集計を表示したいらしい
-	//$s1 = sprintf("SELECT url,count(*) as cnt FROM rsswidget.inalllog WHERE acc = '%s' GROUP BY url ORDER BY cnt DESC",$id);
-	$anly = DB::table('inalllog')->select(DB::raw('refer,count(*) as cnt'))->where('acc','=',Session::get('acc'))->where('url','=',"http://".$id."/")->groupby('refer')->orderby('cnt','desc')->paginate(50);
 
-	// サイトセレクト
-	$cfg['HTMLselectsite'] = siteList1();
+/////////////////////////////////////////////////////////////////////
+// RSS取得、サイト投稿
 
-	return View::make('refer',array('cfg'=>$cfg,'refer'=>$anly));
-
-}));
-
-Route::get('/rss/referall/{id}',array('before'=>'admauth','as'=>'referalllist',function($id='')
-{
-	$cfg['nickname']=Session::get('nickname');
-	$cfg['ASP_NAME']='RSS Widget';
-	$cfg['selected']='';
-	$cfg['id'] = $id;
-
-	$anly = DB::table('inalllog')->where('acc','=',Session::get('acc'))->where('url','=',"http://".$id."/")->orderby('utime','desc')->paginate(50);
-
-	// サイトセレクト
-	$cfg['HTMLselectsite'] = siteList1();
-
-	return View::make('referall',array('cfg'=>$cfg,'refer'=>$anly));
-
-}));
+Route::get('cron/rssGet2',['uses'=>'CronController2@rssGet','as'=>'cron.rssGet2']);
+Route::get('cron/rssPost2',['uses'=>'CronController2@rssPost','as'=>'cron.rssPost2']);

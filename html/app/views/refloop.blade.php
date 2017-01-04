@@ -9,9 +9,8 @@
 	<div class="panel-heading">ブログ一覧</div>
 	<div class="panel-body">
 		<div class="text-left clr10">
-		<div class="alert alert-info">現在15分おきにアクセスが反映されます</div>
 		<div class="col-sm-3">
-	  <div class="btn btn-default"><a href="{{route('blogedit')}}">ブログ追加</a></div>
+	  <div class="btn btn-default"><a href="{{route('blog.edit')}}">ブログ追加</a></div>
 	  </div>
 	  <div class="col-sm-9 text-right">
 	  pv : {{$cnt['pv']}}<br>
@@ -24,9 +23,6 @@
 				<td>ID</td>
 				<td>サイト名称</td>
 				<td>PV</td>
-				<td>IN</td>
-				<td>OUT</td>
-				<td>IN/OUT</td>
 				<td width=100>操作</td>
 			</tr>
 				@if(count($anly) > 0)
@@ -60,15 +56,6 @@
 				<td>
 				{{$av->cnt}}
 				</td>
-				<td>{{$in}}</td>
-				<td>{{$out}}</td>
-				<td>
-				@if ($out != 0)
-				<?php echo number_format($in/$out,3) ?>
-				@else
-				ゼロ
-				@endif
-				</td>
 				<td>
 					@if($id!='-')
 					<a href="/rss/blog/edit/{{$id}}"><span class="glyphicon glyphicon-cog"></span></a>
@@ -83,7 +70,7 @@
 			<tr>
 				@endforeach
 				@else
-			<tr><td colspan="6">管理サイトがありません</td></tr>
+			<tr><td colspan="4">管理サイトがありません</td></tr>
 				@endif
 		</table>
 	<!--/.panel-body--></div>
