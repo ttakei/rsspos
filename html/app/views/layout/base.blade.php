@@ -17,7 +17,7 @@
 <div id="wrap">
 <div class="container">
 <div class="row">
-<div class="logo clr10 alert alert-success">RSS投稿システム<!--<img src="http://placehold.jp/1000x50.png">--></div>
+<div class="logo clr10 alert alert-success">ヘッダー領域<!--<img src="http://placehold.jp/1000x50.png">--></div>
 <div class="content col-lg-12">
 @yield('side')
 @yield('content')

@@ -55,9 +55,9 @@ return array(
 		'mysql' => array(
 			'driver'    => 'mysql',
 			'host'      => 'localhost',
-			'database'  => 'rsspos_net',
-			'username'  => 'rsspos_net',
-			'password'  => 'HvDwz9hYA6sj39CY',
+			'database'  => 'rsswidget',
+			'username'  => 'rsswidget',
+			'password'  => 'ASvzTAHAyJrM3Xa',
 			'charset'   => 'utf8',
 			'collation' => 'utf8_unicode_ci',
 			'prefix'    => '',

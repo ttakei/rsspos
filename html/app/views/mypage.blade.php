@@ -7,6 +7,20 @@
 	</div>
 
 	<div class="clr10"></div>
+	<div class="panel panel-warning info">
+		<div class="panel-heading">新着情報</div>
+		<div class="panel-body">
+			<dl>
+				@if(count($news) > 0)
+				@foreach($news as $v)
+				<dt>{{date('Y-m-d',strtotime($v->created))}}</dt>
+				<dd>{{ $v->title }}</dd>
+				@endforeach
+				@else お知らせはありません。
+				@endif
+			</dl>
+		</div>
+	</div>
 @stop
 
 @section('content')
@@ -22,6 +36,17 @@
 			@else お知らせはありません。
 			@endif
 		</dl>
+	</div>
+</div>
+<div class="panel panel-primary">
+	<div class="panel-heading">アクセス解析タグ関連</div>
+	<div class="panel-body">
+	<div class="well">
+&lt;script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js">&lt;/script><br>
+&lt;script src="http://{{$_SERVER['HTTP_HOST']}}/rank.php?id={{$cfg['acc']}}">&lt;/script></div>
+上記２行を設置するサイトに記載してください。
+
+
 	</div>
 </div>
 

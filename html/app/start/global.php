@@ -89,6 +89,36 @@ App::down(function()
 
 require app_path().'/filters.php';
 
+Form::macro('cbinline',function($name,$label=null,$values=null,$tval,$attributes=[]){
+  $html = '';
+  $name2 = str_replace("[]","",$name);
+  foreach($values as $k=>$v){
+    if(count($tval)>0){
+      $check = (in_array($k,$tval))?'checked':'';
+      $html .= sprintf("<label class='checkbox-inline'><input type='checkbox' name='%s' id='%s' value='%s'%s>%s</label>",$name,$name2.'-'.$k,$k,$check,$v);
+    }else{
+      $check = ($tval==$k)?'checked':'';
+      $html .= sprintf("<label class='checkbox-inline'><input type='checkbox' name='%s' id='%s' value='%s'%s>%s</label>",$name,$name2.'-'.$k,$k,$check,$v);
+    }
+  }
+  return fieldWrapper($name, $label, $html);
+});
+
+Form::macro('cb',function($name,$label=null,$values=null,$tval,$attributes=[]){
+  $html = '';
+  $name2 = str_replace("[]","",$name);
+  foreach($values as $k=>$v){
+    if(count($tval)>0){
+      $check = (in_array($k,$tval))?'checked':'';
+      $html .= sprintf("<label class='checkbox-inline'><input type='checkbox' name='%s' id='%s' value='%s'%s>%s</label><br>",$name,$name2.'-'.$k,$k,$check,$v);
+    }else{
+      $check = ($tval==$k)?'checked':'';
+      $html .= sprintf("<label class='checkbox-inline'><input type='checkbox' name='%s' id='%s' value='%s'%s>%s</label><br>",$name,$name2.'-'.$k,$k,$check,$v);
+    }
+  }
+  return fieldWrapper2($name, $label, $html);
+});
+
 Form::macro('rbinline',function($name,$label=null,$values=null,$val,$attributes=[]){
   $html = '';
   foreach($values as $k=>$v){
@@ -122,7 +152,7 @@ Form::macro('staticField', function($name, $label = null, $value = null, $attrib
   return fieldWrapper($name, $label, $element);
 });
 
- Form::macro('textField', function($name, $label = null, $value = null, $attributes = array())
+Form::macro('textField', function($name, $label = null, $value = null, $attributes = array())
 {
     $element = Form::text($name, $value, fieldAttributes($name, $attributes));
 
@@ -182,6 +212,18 @@ function fieldWrapper($name, $label, $element)
     return $out;
 }
 
+function fieldWrapper2($name, $label, $element)
+{
+    $out = '<div class="form-group';
+    $out .= fieldError($name) . '">';
+    $out .= fieldLabel($name, $label);
+    $out .= '<br>';
+    $out .= $element;
+    $out .= '</div>';
+
+    return $out;
+}
+
 function fieldError($field)
 {
     $error = '';
@@ -215,7 +257,9 @@ function fieldAttributes($name, $attributes = array())
 
 function siteList1(){
 
-    $sitesList = Sites::select('acc','name')->where('userid',Session::get('user'))->get();
+    $userSites = Users::find(Session::get('user'))->sites->lists('site_id');
+    //$sitesList = Sites::select('acc','name')->where('userid',Session::get('user'))->get();
+    $sitesList = Sites::select('acc','name')->whereIn('id',$userSites)->get();
 
     $selectsite = '<div class=""><div class="input-group"><select style="font-size:13px;vertical-align:middel" class="accsel form-control" name="acc" onchange="submit(this.form)">';
 
@@ -284,48 +328,30 @@ function fetchMultiUrl($urls, $timeout = 10, &$errorUrls = array()) {
     return $res;
 }
 
-function microtime_float()
-{
-  list($usec, $sec) = explode(" ", microtime());
-  return ((float)$usec + (float)$sec);
-}
+function _curl_get_contents($url){
+    $array_url = parse_url($url);
 
-function curl_get_contents( $url, $timeout = 10 ){
     $ch = curl_init();
-    curl_setopt( $ch, CURLOPT_URL, $url );
-    curl_setopt( $ch, CURLOPT_USERAGENT,'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36');
-    curl_setopt( $ch, CURLOPT_HEADER, false );
-    curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
-    curl_setopt( $ch, CURLOPT_TIMEOUT, $timeout );
-    $result = curl_exec( $ch );
-    curl_close( $ch );
+
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_HEADER, FALSE);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+    // 証明書認証の設定
+    if ($array_url['scheme'] === "https") {
+        // サーバ認証しない
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        // クライアント認証しない
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
+    }
+    // Facebook対応
+    curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36');
+    //curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.5; en-US; rv:1.9.1.3) Gecko/20090824 Firefox/3.5.3');
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
+
+    $result = curl_exec($ch);
+
+    curl_close($ch);
+
     return $result;
-}
-
-function ImgUrlExtraction($text1=NULL, $text2=NULL)
-{
-
-  $pattern = '/(https?)(:\/\/[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#]+)\.(jpg|jpeg|gif|png)/i';
-
-  if($text1){
-    $matches = array();
-    preg_match_all($pattern, $text1, $matches, PREG_SET_ORDER);
-    foreach($matches as $val){
-      $headers = @get_headers($val[0]);
-      if(strpos($headers[0], 'OK'))
-      return $val[0];
-    }
-  }
-
-  if($text2){
-    $matches = array();
-    preg_match_all($pattern, $text2, $matches, PREG_SET_ORDER);
-    foreach($matches as $val){
-      $headers = @get_headers($val[0]);
-      if(strpos($headers[0], 'OK'))
-        return $val[0];
-    }
-  }
-
-  return NULL;
 }

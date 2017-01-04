@@ -9,7 +9,7 @@
 <div class="panel panel-primary">
   <div class="panel-heading">新着情報</div>
   <div class="panel-body">
-    12/26日動画リンク取得に対応しました。
+    ほげほげ
   </div>
 </div>
 </div>
@@ -44,6 +44,6 @@
 @section('content')
 <div class="content col-lg-10">
 <div class="well well-success">RSS Widget システム</div>
-<!--<img src="img/sc1.png">-->
+<img src="img/sc1.png">
 </div>
 @stop
