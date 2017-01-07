@@ -328,6 +328,12 @@ function fetchMultiUrl($urls, $timeout = 10, &$errorUrls = array()) {
     return $res;
 }
 
+function microtime_float()
+{
+	list($usec, $sec) = explode(" ", microtime());
+	return ((float)$usec + (float)$sec);
+}
+
 function _curl_get_contents($url){
     $array_url = parse_url($url);
 
@@ -354,4 +360,32 @@ function _curl_get_contents($url){
     curl_close($ch);
 
     return $result;
+}
+
+function ImgUrlExtraction($text1=NULL, $text2=NULL)
+{
+
+  $pattern = '/(https?)(:\/\/[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#]+)\.(jpg|jpeg|gif|png)/i';
+
+  if($text1){
+    $matches = array();
+    preg_match_all($pattern, $text1, $matches, PREG_SET_ORDER);
+    foreach($matches as $val){
+      $headers = @get_headers($val[0]);
+      if(strpos($headers[0], 'OK'))
+      return $val[0];
+    }
+  }
+
+  if($text2){
+    $matches = array();
+    preg_match_all($pattern, $text2, $matches, PREG_SET_ORDER);
+    foreach($matches as $val){
+      $headers = @get_headers($val[0]);
+      if(strpos($headers[0], 'OK'))
+        return $val[0];
+    }
+  }
+
+  return NULL;
 }

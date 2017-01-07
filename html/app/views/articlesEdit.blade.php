@@ -32,7 +32,7 @@ $(function(){
 			<div class="col-md-6">
 				<?php
 				$movSite = $articleObj->movSite;
-				if($movSite!=''){
+				if($movSite!='' && $articleObj->movid){
 					$tpl = array_get(Config::get('app.movtag'),$articleObj->movSite);
 					$tpl = str_replace("#movid#",$articleObj->movid,$tpl);
 					$tpl = str_replace("#title#",$articleObj->title,$tpl);
@@ -87,7 +87,7 @@ $(function(){
 		@else
 		<div class="alert alert-danger">
 			サイトのタグが設定されていません<br>
-			<a href="{{route('siteedit',['id'=>$site->id])}}">設定する</a>
+			<a href="{{route('site.edit',['id'=>$site->id])}}">設定する</a>
 		</div>
 		@endif
 		</div>

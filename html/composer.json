@@ -3,8 +3,21 @@
 	"description": "The Laravel Framework.",
 	"keywords": ["framework", "laravel"],
 	"license": "MIT",
+	"repositories": [
+	    {
+	        "type": "vcs",
+	        "url": "https://github.com/lsmonki/php-ixr"
+	    },
+	    {
+	      "type":"pear",
+	      "url":"http://pear.php.net"
+	    }
+	],
 	"require": {
+		"pear-pear.php.net/HTTP_Request2": "2.*",
 		"laravel/framework": "4.2.*",
+		"simplepie/simplepie": "dev-master",
+		"lsmonki/php-ixr": "1.7.*",
 		"components/jquery": "*",
 		"barryvdh/laravel-debugbar": "1.8",
 		"twitter/bootstrap": "*"

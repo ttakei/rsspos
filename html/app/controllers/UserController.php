@@ -54,7 +54,7 @@ class UserController extends BaseController
 
     $user = Users::create($input);
 
-    $sites = Input::get('sites');
+    $sites = Input::get('sites') ? Input::get('sites') : array();
     UserSites::where('users_id',$user->id)->delete();
     foreach($sites as $site_id){
       UserSites::create(['users_id'=>$user->id,'site_id'=>$site_id]);
@@ -101,7 +101,7 @@ class UserController extends BaseController
 
     Users::where('id',$id)->update($input);
 
-    $sites = Input::get('sites');
+    $sites = Input::get('sites') ? Input::get('sites') : array();
     UserSites::where('users_id',$id)->delete();
     foreach($sites as $site_id){
       UserSites::create(['users_id'=>$id,'site_id'=>$site_id]);
