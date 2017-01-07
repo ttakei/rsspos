@@ -108,6 +108,9 @@ class CronController2 extends BaseController {
 			$sites[$db_site->acc] = array(
 				'isactive' => $db_site->isactive,
 				'actressFormat' => $db_site->actressFormat,
+				'seotitle' => $db_site->seotitle,
+				'seodesc' => $db_site->seodesc,
+				'seokeyword' => $db_site->seokeyword,
 			);
 		}
 		
@@ -416,9 +419,15 @@ class CronController2 extends BaseController {
 					$seo_keyword = '';
 				} else {
 					$new = 1;
-					$seo_title = $title;
-					$seo_desc = $title_org;
-					$seo_keyword = $item['tag'];
+					$seo_title = str_replace('#title#', $title, 
+						str_replace('#title_org#', $title_org, 
+							str_replace('#tag#', $item['tag'], $sites[$item['acc']]['seotitle'])));
+					$seo_desc = str_replace('#title#', $title, 
+						str_replace('#title_org#', $title_org, 
+							str_replace('#tag#', $item['tag'], $sites[$item['acc']]['seodesc'])));
+					$seo_keyword = str_replace('#title#', $title, 
+						str_replace('#title_org#', $title_org, 
+							str_replace('#tag#', $item['tag'], $sites[$item['acc']]['seokeyword'])));
 				}
 				$db_articles[] = array(
 					'acc' => $item['acc'],
@@ -582,6 +591,9 @@ EOS
 			$article_list = DB::select($query); 
 			
 			foreach ($article_list as $article) {
+				$msg = sprintf("post start %d", $article->id);
+				Log::debug($msg);
+				
 				// 記事チェック
 				// チェックに引っかかった記事はnewフラグを落として次へ
 				// 画像
@@ -703,7 +715,7 @@ EOS
 							'article' => $article,
 						);
 						Article2::where('id', $article->id)->update(array('new' => 0));
-						$msg = sprintf("failed fetch image file: article_id(%s), imgurl(%s), msg(%s)", $article->id, $article->imgurl, $client_ixr->getErrorCode(). ': '. $client_ixr->getErrorMessage());
+						$msg = sprintf("failed fetch image file: article_id(%s), imgurl(%s)", $article->id, $article->imgurl);
 						Log::warning($msg);
 						continue;
 					}
@@ -839,7 +851,8 @@ EOS
 					'img' => $img_ixr_id,
 					'query' => $query,
 				);
-				continue;
+				$msg = sprintf("post done %d", $article->id);
+				Log::debug($msg);
 			}
 		}
 		

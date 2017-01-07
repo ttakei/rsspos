@@ -249,10 +249,7 @@ class AdminController extends BaseController {
 					$use_movlink_tmpl[] = $ms;
 				}
 			}
-			//$use_tmpl = array_merge($use_mov_tmpl, $use_movlink_tmpl);
-			//$use_movsite = array_keys($use_tmpl);
 			
-			//$articles = $articles->whereIn('movSite',$use_movsite);
 			$articles = $articles->where('movSite', '<>', '')
 			->where(function($query) use($use_mov_tmpl, $use_movlink_tmpl) {
 				$query->where(function($query2) use ($use_mov_tmpl) {

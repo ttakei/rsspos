@@ -72,9 +72,6 @@
           {{Form::textField('wpuser','ユーザ名',$site['wpuser'])}}
           {{Form::textField('wppass','パスワード | APIキー',$site['wppass'])}}
 
-          {{Form::textField('wpdbhost','WP DBホスト &raquo; All IN ONE用 (dbname=WPデータベース名;host=WPのドメイン or IPアドレス)',$site['wpdbhost'])}}
-          <p style="color:red">↑該当WPのDBにアクセス可能な右記アカウントが必要 wpaioseo/Bb8YwdfAcuaP2EPI</p><br>
-
           <div class="panel panel-success">
             <div class="panel-heading">投稿制限設定</div>
             <div class="panel-body">
@@ -97,11 +94,17 @@
         {{Form::label('isPostCategory','動画サイト名をカテゴリとして送信する設定。WP側で要設定')}}
         {{Form::rb('isPostCategory',array(0=>'動画サイト名をカテゴリを送信しない',1=>'動画サイト名をカテゴリを送信する'),$site['isPostCategory'])}}
         <div style="color:red">↑送信する場合、WP側でカテゴリ  <span style="font-weight:bold">Xvideo</span>, <span style="font-weight:bold">FC2</span>, <span style="font-weight:bold">FC2ja</span>, <span style="font-weight:bold">Xhamster</span>, <span style="font-weight:bold">Redtube</span>, <span style="font-weight:bold">Erovideonet</span>, <span style="font-weight:bold">Pornhub</span>, <span style="font-weight:bold">Pipii</span>, <span style="font-weight:bold">Javynow</span>, <span style="font-weight:bold">VJAV</span>, <span style="font-weight:bold">ShareVideos</span>, <span style="font-weight:bold">TokyoTube</span>, <span style="font-weight:bold">Tube8</span>, <span style="font-weight:bold">Spankbang</span>, <span style="font-weight:bold">Youporn</span>, <span style="font-weight:bold">Txxx</span> をすべて、予め登録してください。WPにカテゴリがないと投稿に失敗します。</div>
-        @endif
 
-        {{Form::textField('seotitle','SEO Pack title - #title# / #imgurl# / #url#',$site['seotitle'])}}
-        {{Form::textField('seodesc','SEO Pack description - #title# / #imgurl# / #url#',$site['seodesc'])}}
-        {{Form::textField('seokeyword','SEO Pack keyword - #title# / #imgurl# / #url#',$site['seokeyword'])}}
+            @if ($site['id']!=0)
+            {{Form::textField('seotitle','SEO Pack title - #title# / #title_org# / #tag', $site['seotitle'])}}
+            {{Form::textField('seodesc','SEO Pack description - #title# / #title_org# / #tag#', $site['seodesc'])}}
+            {{Form::textField('seokeyword','SEO Pack keyword - #title# / #title_org# / #tag#', $site['seokeyword'])}}
+            @else
+            {{Form::textField('seotitle','SEO Pack title - #title# / #title_org# / #tag', '#title#')}}
+            {{Form::textField('seodesc','SEO Pack description - #title# / #title_org# / #tag#', '#title#')}}
+            {{Form::textField('seokeyword','SEO Pack keyword - #title# / #title_org# / #tag#', '#tag#')}}
+            @endif
+        @endif
       </div>
 
       <div class="tab-pane" id="movdefault">
