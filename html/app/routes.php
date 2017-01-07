@@ -11,36 +11,34 @@
 |
 */
 
-$cfg['manual'] = true;
-
 //Route::when('/', 'myauth');
 //*/15 * * * * curl http://rssweb.net/cron/cnt.php
 //5,35 * * * * curl http://rssweb.net/cron/rssGet.php;curl http://rssweb.net/cron/rssGet2.php
 
 View::composer('*',function($view){
-	if(Session::has('nickname'))
+	if(Session::has('nickname')) {
 		$cfg['nickname']=Session::get('nickname');
+		$cfg['ASP_NAME']='RSS Widget';
+		$cfg['nowCalendar']='選択してください';
+		$cfg['selected']='hide';
+		if(Session::has('acc')){
+			$cfg['acc']=Session::get('acc');
+		}else{
+			$cfg['acc']='アカウント名';
+		}
+		$cfg['HTMLselectsite'] = siteList1();
 
-	$cfg['ASP_NAME']='RSS Widget';
-	$cfg['nowCalendar']='選択してください';
-	$cfg['selected']='hide';
-	if(Session::has('acc')){
-		$cfg['acc']=Session::get('acc');
-	}else{
-		$cfg['acc']='アカウント名';
+		$news = News::all();	// お知らせ用
+
+		$view->with(compact('cfg','news'));
 	}
-	$cfg['HTMLselectsite'] = siteList1();
-
-	$news = News::all();	// お知らせ用
-
-	$view->with(compact('cfg','news'));
 });
 
 Route::get('test/remove',function(){
-	$idAry = Article::groupBy(['blogid','url'])->havingRaw('count(*)>1')->lists('id');
+	$idAry = Article2::groupBy(['blogid','url'])->havingRaw('count(*)>1')->lists('id');
 	foreach($idAry as $id){
 		echo "delete id : $id <br>";
-		Article::where('id',$id)->delete();
+		Article2::where('id',$id)->delete();
 	}
 });
 
@@ -87,17 +85,17 @@ Route::get('test/acc',function(){
 		// var_dump($blogs);
 		// echo '<hr>';
 		foreach($blogs as $blogid):
-			Article::where('blogid',$blogid)->update(['acc'=>$site->acc]);
+			Article2::where('blogid',$blogid)->update(['acc'=>$site->acc]);
 		endforeach;
 	endforeach;
 	// $step = 1000;
 	// for($i=0;$i<10;$i++){
-	// 	$article = Article::orderBy('created_at','desc')->take($step)->offset($i*$step)->get();
+	// 	$article = Article2::orderBy('created_at','desc')->take($step)->offset($i*$step)->get();
 	// 	foreach($article as $item){
-	// 		//$chk = Article::where('movSite',$item->movSite)->where('movid',$item->movid)->
+	// 		//$chk = Article2::where('movSite',$item->movSite)->where('movid',$item->movid)->
 	// 		if($blog = Blogs::where('id',$item->blogid)->first()){
 	// 			printf("article_id:%d blog_id:%d site_acc:%s<br>",$item->id,$item->blogid,$item->blog->acc);
-	// 			//Article::where('id',$item->id)->update(['acc'=>$item->blog->acc]);
+	// 			//Article2::where('id',$item->id)->update(['acc'=>$item->blog->acc]);
 	// 		}
 	// 	}
 	// 	printf("%d - %d<hr>",$i*$step,($i+1)*$step);
@@ -110,7 +108,7 @@ Route::get('test/dup',function(){
 	$movid=(\Input::has('movid'))?\Input::get('movid'):17378767;
 	$movSite=(\Input::has('movSite'))?\Input::get('movSite'):'xvideo';
 
-	$_chk = Article::where('movid',$movid)->where('movSite',$movSite);
+	$_chk = Article2::where('movid',$movid)->where('movSite',$movSite);
 	//var_dump($_chk->get());
 	//var_dump($_chk);
 
@@ -122,10 +120,10 @@ Route::get('test/dup',function(){
 	//var_dump($_chk->blog->toSql());
 	// foreach($_dupChk as $_dupChk_v){
 	// 	if($_dupChk_v->blog->acc != $site->acc){
-	// 		Article::where('id',$item_id)->update($input);
+	// 		Article2::where('id',$item_id)->update($input);
 	// 		break;
 	// 	}else{
-	// 		//Article::where('id',$item_id)->delete();
+	// 		//Article2::where('id',$item_id)->delete();
 	// 		echo "<div class='label label-danger'>この動画はすでに存在していますので削除しました</div><br>";
 	// 		//break;
 	// 	}
@@ -244,7 +242,6 @@ Route::get('test/wp/getCategoryList/{id?}',function($id=73){
 Route::get('/', array('as'=>'top',function()
 {
 	$cookie = json_decode(Cookie::get('rsswidget'),true);
-
 	return View::make('index',array('ASP_NAME'=>'RSS WIDGET','cookie'=>$cookie));
 }));
 Route::get('/login', function()
@@ -301,7 +298,11 @@ Route::post('rss/site/edit',['uses'=>'AdminController@sitePost','as'=>'site.upda
 Route::get('rss/site/del/{id?}',['before'=>'admauth','uses'=>'AdminController@siteDel','as'=>'site.del']);
 Route::post('/rss/site',array('before'=>'csrf',function(){
 	Session::put('acc',Input::get('acc'));
-	return Redirect::to('/rss/blog');
+	if(Session::get('role')=='writer'){
+		return Redirect::to('/rss/article');
+	}else{
+		return Redirect::to('/rss/blog');
+	}
 }));
 
 /////////////////////////////////////////////////////////////////////
@@ -366,14 +367,15 @@ Route::get('/rss/article/edit/{id?}',array('before'=>'myauth','as'=>'article.edi
 	// サイトセレクト
 	$cfg['HTMLselectsite'] = siteList1();
 
-	$articleObj = Article::selectRaw('blogs.name as blogname,article.*')
-	->leftJoin('blogs','blogs.id','=','article.blogid')
-	->where('article.id',$id)
+	$articleObj = Article2::selectRaw('blogs.name as blogname,article2.*')
+	->leftJoin('blogs','blogs.id','=','article2.blogid')
+	->where('article2.id',$id)
 	->first();
 
 	//dd($articleObj);
 
-	return View::make('articlesEdit',compact('cfg','articleObj','categoryAry','site'));
+	$show = 1;
+	return View::make('articlesEdit',compact('cfg','articleObj','categoryAry','site', 'show'));
 
 }));
 // TODO: AdminContollerに処理を移す
@@ -427,7 +429,7 @@ Route::post('/rss/article/edit',function()
 	}
 	// seo_keyword
 	$_cat = '';
-	if(Input::has('category')){
+	if(Input::has('category') && is_array(Input::get('category'))){
 		foreach(Input::get('category') as $k=>$v){
 			$_cat .= $categoryAry[$v].',';
 		}
@@ -439,6 +441,9 @@ Route::post('/rss/article/edit',function()
 	// seo_title
 	$input['seo_title'] = $input['title_rewrite'];
 
+	// newフラグを立てないと投稿されない
+	$input['new'] = '1';
+	
 	//dd($input);
 
 	// $rules=array(
@@ -453,14 +458,14 @@ Route::post('/rss/article/edit',function()
 	// 	return Redirect::back()->withErrors($val)->withInput();
 	// }
 
-	Article::where('id',$id)->update($input);
+	Article2::where('id',$id)->update($input);
 
 	return Redirect::to('/rss/article');
 });
 // TODO: AdminContollerに処理を移す
 Route::get('/rss/article/del/{id}',array('before'=>'myauth',function($id)
 {
-	Article::destroy($id);
+	Article2::destroy($id);
 	return Redirect::to('/rss/article');
 }))->where('id','[0-9]+');
 // TODO: AdminContollerに処理を移す
@@ -476,16 +481,17 @@ Route::get('/rss/check',['before'=>'admauth','as'=>'writer.check',function(){
 	$blogs = Blogs::where('acc',Session::get('acc'))->orderby('in','desc')->lists('id');
 
 	// 予約投稿時刻が入力されている && 動画サービスありの記事を抽出
-	$articles = Article::selectRaw("blogs.name, blogs.siteurl,article.*")
+	$articles = Article2::selectRaw("blogs.name, blogs.siteurl,article2.*")
 	->where('movSite','<>','')
 	->where('researved_at','<>','0000-00-00 00:00:00')
-	->leftJoin('blogs','blogs.id','=','article.blogid')
+	->leftJoin('blogs','blogs.id','=','article2.blogid')
 	->where('blogs.acc',Session::get('acc'))
-	->whereIn('article.blogid',$blogs)
+	->whereIn('article2.blogid',$blogs)
 	->orderBy('updated_at','DESC')
 	->paginate(30);
 
-	return View::make('check.index',array('cfg'=>$cfg,'articles'=>$articles));
+	$show = 1;
+	return View::make('check.index',array('cfg'=>$cfg,'articles'=>$articles,'show'=>$show));
 }]);
 
 

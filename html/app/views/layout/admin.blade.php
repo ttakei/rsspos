@@ -27,8 +27,6 @@
 		@if(Session::get('role')=='admin')
 		<li><a href="{{route('mypage')}}">マイページ</a></li>
 		<li><a href="{{route('site')}}">サイト管理</a></li>
-		<li><a href="{{route('cron.rssGet2')}}" target="_blank">RSS手動取得(新)</a></li>
-		<li><a href="{{route('cron.rssPost2')}}" target="_blank">手動投稿(新)</a></li>
 		<li><a href="{{route('replace')}}">置換設定</a></li>
 		<li><a href="{{route('actress')}}">女優名設定</a></li>
 		<li><a href="{{route('admin.user.index')}}">ユーザー設定</a></li>
@@ -52,12 +50,12 @@
 	</div>
 
 	@if(Session::has('acc'))
-	<div class="panel panel-default panel-primary info clr10 {{$cfg['selected'] or 'hide'}}">
+	<div class="panel panel-default panel-primary info clr10 {{$show or 'hide'}}">
 		<div class="panel-heading">サイトメニュー</div>
 		<ul class="list-group">
 		@if(Session::get('role')=='admin')
 			<li class="list-group-item"><a href="{{route('blog')}}" class="">ブログリスト</a></li>
-			@if(!empty($cfg['manual'])
+			@if(Config::get('app.manu'))
 			<li class="list-group-item"><a href="{{route('writer.check')}}" class="">ライターチェック</a></li>
 			@endif
 			<li class="list-group-item"><a href="{{route('article')}}" class="">記事リスト</a></li>
@@ -66,10 +64,12 @@
 			<li class="list-group-item"><a href="{{route('noActress')}}" class="">NON女優名設定</a></li>
 			<li class="list-group-item"><a href="/cron/rssGet2?acc={{Session::get('acc')}}" class="">RSS手動取得</a></li>
 			<li class="list-group-item"><a href="/cron/rssPost2?acc={{Session::get('acc')}}" class="">手動投稿</a></li>
-		@endif
+		@else
 			<li class="list-group-item"><a href="{{route('articlelist')}}" class="">記事リスト</a></li>
+		@endif
 		</ul>
 	</div>
+	@endif
 @show
 </div>
 <div class="content col-lg-9">

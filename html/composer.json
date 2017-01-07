@@ -15,7 +15,6 @@
 	],
 	"require": {
 		"pear-pear.php.net/HTTP_Request2": "2.*",
-		"barryvdh/laravel-debugbar": "1.8",
 		"laravel/framework": "4.2.*",
 		"simplepie/simplepie": "dev-master",
 		"lsmonki/php-ixr": "1.7.*",
