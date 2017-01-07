@@ -5,8 +5,10 @@ define("APC",1);
 define("IP_FILTER",1);
 define("BID_MATCH",1);
 
-$con = mysql_pconnect('localhost','rsspos_net','HvDwz9hYA6sj39CY') or die ("DBERR-NC");
-mysql_select_db('rsspos_net',$con) or die("DBERR-NonDB");
+//$con = mysql_pconnect('localhost','rsspos_net','HvDwz9hYA6sj39CY') or die ("DBERR-NC");
+//mysql_select_db('rsspos_net',$con) or die("DBERR-NonDB");
+$con = mysql_pconnect('localhost','rsswidget','ASvzTAHAyJrM3Xa') or die ("DBERR-NC");
+mysql_select_db('rsswidget',$con) or die("DBERR-NonDB");
 
 function sqlesc($str){
 	return mysql_real_escape_string($str);

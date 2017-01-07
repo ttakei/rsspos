@@ -1,0 +1,81 @@
+create table article2 like article;
+insert into article2 select * from article;
+alter table article2 change movid movid varchar(100);
+alter table article2 add acc varchar(20) DEFAULT NULL NOT NULL;
+alter table article2 add movlink varchar(200);
+alter table article2 add new tinyint(1) DEFAULT '1';
+alter table article2 add index acc_new (acc,new);
+update article2 set new = 0;
+
+CREATE UNIQUE INDEX blogid_url_unique on article2 (blogid, url(255));
+
+alter table sites add `blogType` varchar(10) NOT NULL;
+alter table sites add `url` varchar(255) NOT NULL;
+alter table sites add `actressFormat` varchar(255) NOT NULL;
+alter table sites add `titleLength` int(10) unsigned DEFAULT 50 NOT NULL;
+alter table sites add `sitetype` tinyint(1) DEFAULT 1 NOT NULL;
+alter table sites add `category` int(11) NOT NULL;
+alter table sites add `javynow` text NOT NULL;
+alter table sites add `VJAV` text NOT NULL;
+alter table sites add `ShareVideos` text NOT NULL;
+alter table sites add `TokyoTube` text NOT NULL;
+alter table sites add `Tube8` text NOT NULL;
+alter table sites add `spankbang` text NOT NULL;
+alter table sites add `youporn` text NOT NULL;
+alter table sites add `txxx` text NOT NULL;
+alter table sites add `post_status` varchar(10) NOT NULL DEFAULT '';
+alter table sites add `xvideo__movlink` text;
+alter table sites add `fc2__movlink` text;
+alter table sites add `fc2ja__movlink` text;
+alter table sites add `xhamster__movlink` text;
+alter table sites add `redtube__movlink` text;
+alter table sites add `erovideonet__movlink` text;
+alter table sites add `pornhub__movlink` text;
+alter table sites add `pipii__movlink` text;
+alter table sites add `javynow__movlink` text;
+alter table sites add `VJAV__movlink` text;
+alter table sites add `ShareVideos__movlink` text;
+alter table sites add `TokyoTube__movlink` text;
+alter table sites add `Tube8__movlink` text;
+alter table sites add `spankbang__movlink` text;
+alter table sites add `youporn__movlink` text;
+alter table sites add `txxx__movlink` text;
+alter table sites add `isPostCategory` tinyint(1) DEFAULT '0';
+
+update sites set post_status = 'publish';
+
+CREATE TABLE `actress` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=6345 DEFAULT CHARSET=utf8
+
+CREATE TABLE `postword` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `sites_acc` varchar(30) NOT NULL,
+  `tag` varchar(200) NOT NULL,
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=1578 DEFAULT CHARSET=utf8
+
+CREATE TABLE `no_actress` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `sites_acc` varchar(30) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `rate` smallint(5) unsigned NOT NULL DEFAULT '50',
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=43 DEFAULT CHARSET=utf8
+
+CREATE TABLE `ngword` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `sites_acc` varchar(30) NOT NULL,
+  `tag` varchar(200) NOT NULL,
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=339 DEFAULT CHARSET=utf8

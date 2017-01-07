@@ -223,16 +223,51 @@ class AdminController extends BaseController {
 		$show = 1;
 
 		// サイトに対するブログを選択
+		$site = Sites::where('acc',Session::get('acc'))->first();		
 		$blogs = Blogs::where('acc',Session::get('acc'))->orderby('in','desc')->lists('id');
+		
+		$articles = Article2::selectRaw("article2.id, article2.imgurl, article2.url, article2.title, article2.title_org, article2.created_at, article2.researved_at, article2.posted_at, blogs.name, blogs.siteurl,article2.movSite,article2.movid,article2.movlink")
+			->whereIn('article2.blogid',$blogs);
+		// 画像必須の場合
+		if ($site->isNeedimg) {
+			$articles = $articles->where('imgurl','<>','');
+		}
+		// 動画必須の場合
+		if ($site->isNeedmov) {
+			// 設定しているテンプレート
+			$use_mov_tmpl = array();
+			foreach (Config::get('app.movService') as $col => $ms) {
+				if ($site->$ms) {
+					//$use_mov_tmpl[$ms] = true;
+					$use_mov_tmpl[] = $ms;
+				}
+			}
+			$use_movlink_tmpl = array();
+			foreach (Config::get('app.movLinkService') as $col => $ms) {
+				if ($site->$col) {
+					//$use_movlink_tmpl[$ms] = true;
+					$use_movlink_tmpl[] = $ms;
+				}
+			}
+			
+			$articles = $articles->where('movSite', '<>', '')
+			->where(function($query) use($use_mov_tmpl, $use_movlink_tmpl) {
+				$query->where(function($query2) use ($use_mov_tmpl) {
+					$query2->where('movid', '<>', '')
+					->whereIn('movSite', $use_mov_tmpl);
+				})
+				->orwhere(function($query3) use ($use_movlink_tmpl) {
+					$query3->where('movlink', '<>' ,'')
+					->whereIn('movSite', $use_movlink_tmpl);
+				});
+			});
+		}
+		$articles = $articles->orderBy('created_at','DESC')
+			->leftJoin('blogs','blogs.id','=','article2.blogid')
+			->where('blogs.acc',Session::get('acc'))
+			->paginate(30);
 
-		$articles = Article2::selectRaw("article2.id, article2.url, article2.title, article2.title_org, article2.created_at, article2.posted_at, blogs.name, blogs.siteurl,article2.movSite,article2.movid,article2.movlink")
-		->leftJoin('blogs','blogs.id','=','article2.blogid')
-		->where('blogs.acc',Session::get('acc'))
-		->whereIn('article2.blogid',$blogs)
-		->orderBy('created_at','DESC')
-		->paginate(30);
-
-		return View::make('articles',array('show'=>$show,'articles'=>$articles));
+		return View::make('articles',array('show'=>$show,'site'=>$site,'articles'=>$articles));
 	}
 
 	public function parts(){

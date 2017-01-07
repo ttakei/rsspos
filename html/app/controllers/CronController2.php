@@ -3,12 +3,13 @@
 class CronController2 extends BaseController {
 
 	const MAX_TIME_LIMIT = 600;  // 処理全体の最大処理時間(秒)
+	const MAX_MEMORY_MBYTE = '250M';
 	const CURL_TIMEOUT = 10;
-	const MULTI_CURL_TIMEOUT = 20;
-	const MULTI_CURL_MAX_FAIL_CNT = 3;
+	const MULTI_CURL_TIMEOUT = 10;
+	const MULTI_CURL_MAX_FAIL_CNT = 1;
 	const MULTI_CURL_MAX_DOMAIN_PARA = 1;  // ドメイン単位の最大並列数
 	const MULTI_CURL_MAX_PARA = 50;  // リクエスト最大並列数
-	const MAX_NUM_ARTICLE_PER_RSS = 20;  //1つのrssでfetchする最大記事件数
+	const MAX_NUM_ARTICLE_PER_RSS = 50;  //1つのrssでfetchする最大記事件数
 	
 	// 記事データ抽出正規表現
 	private $regex_imgurl = '/<img[^>]*src\s*=\s*["\'](.*?)["\'][^>]*>/i';
@@ -85,9 +86,11 @@ class CronController2 extends BaseController {
 	public function rssGet(){
 		// 処理開始時間
 		$time_start = microtime(true);
+		Log::info("rssGet start");
 		
-		// 処理全体のタイムアウト時間を設定する
+		// 処理全体のタイムアウト時間、メモリ上限を設定する
 		set_time_limit(self::MAX_TIME_LIMIT);
+		ini_set('memory_limit', self::MAX_MEMORY_MBYTE);
 		
 		// DBに登録されたサイト
 		// サイト取得
@@ -105,6 +108,9 @@ class CronController2 extends BaseController {
 			$sites[$db_site->acc] = array(
 				'isactive' => $db_site->isactive,
 				'actressFormat' => $db_site->actressFormat,
+				'seotitle' => $db_site->seotitle,
+				'seodesc' => $db_site->seodesc,
+				'seokeyword' => $db_site->seokeyword,
 			);
 		}
 		
@@ -160,15 +166,17 @@ class CronController2 extends BaseController {
 		// rss fetch
 		if ($this->multiFetch(array_keys($rss_list), $rss_list, $rss_list_error) !== true) {
 			echo("failed rss multifetch");
+			Log::error("failed rss multifetch");
 			exit;
 		}
 		// タイムアウトだけはエラーに入ってこず結果もセットされないので
 		foreach ($rss_list as $rssurl => $rss) {
 			if (!isset($rss['http_code'])) {
 				$rss_list_error[] = $rssurl;
+				Log::warning("timeout fetch rss $rssurl");
 			}
 		}
-		echo("<pre>rss fetch done</pre>\n");
+		Log::info("rss fetch done");
 		
 		// rss parse
 		foreach ($rss_list as $rssurl => $rss) {
@@ -206,6 +214,7 @@ class CronController2 extends BaseController {
 						'url' => $article_url,
 						'rssurl' => $rssurl,
 					);
+					Log::warning("num over so ignore $article_url at $rssurl");
 					continue;
 				}
 				
@@ -279,6 +288,7 @@ class CronController2 extends BaseController {
 							foreach ($matches as $match) {
 								// microadのビーコン画像無視
 								if (!isset($match[1]) || strpos($match[1], "microad") !== false) {
+									Log::warning("microad img so ignore $article_url at $rssurl");
 									continue;
 								}
 								$imgurl = $match[1];
@@ -308,7 +318,7 @@ class CronController2 extends BaseController {
 				}
 			}
 		}
-		echo("<pre>rss parse done</pre>\n");
+		Log::info("rss parse done");
 
 		// blog fetch
 		if ($this->multiFetch(array_keys($blog_articles), $blog_articles, $blog_articles_error['fetch']) !== true) {
@@ -319,9 +329,10 @@ class CronController2 extends BaseController {
 		foreach ($blog_articles as $url => $article) {
 			if (!isset($article['http_code'])) {
 				$blog_articles_error['fetch'][] = $url;
+				Log::warning("timeout fetch article $url");
 			}
 		}
-		echo("<pre>blog fetch done</pre>\n");
+		Log::info("blog fetch done");
 
 		// DB登録データ作成
 		$utime = time();
@@ -400,6 +411,24 @@ class CronController2 extends BaseController {
 					$title = $format. $title;
 				}
 				
+				if (Config::get('app.manu')) {
+					//手動ツールは記事編集時にセットする
+					$new = 0;
+					$seo_title = '';
+					$seo_desc = '';
+					$seo_keyword = '';
+				} else {
+					$new = 1;
+					$seo_title = str_replace('#title#', $title, 
+						str_replace('#title_org#', $title_org, 
+							str_replace('#tag#', $item['tag'], $sites[$item['acc']]['seotitle'])));
+					$seo_desc = str_replace('#title#', $title, 
+						str_replace('#title_org#', $title_org, 
+							str_replace('#tag#', $item['tag'], $sites[$item['acc']]['seodesc'])));
+					$seo_keyword = str_replace('#title#', $title, 
+						str_replace('#title_org#', $title_org, 
+							str_replace('#tag#', $item['tag'], $sites[$item['acc']]['seokeyword'])));
+				}
 				$db_articles[] = array(
 					'acc' => $item['acc'],
 					'blogid' => $blogid,
@@ -416,19 +445,15 @@ class CronController2 extends BaseController {
 					'posted_at' => '0000/00/00 00:00:00',
 					'created_at' => $item['created_at'],
 					'updated_at' => $updated_at,
-					'seo_title' => '',
-					'seo_desc' => '',
-					'seo_keyword' => '',
+					'seo_title' => $seo_title,
+					'seo_desc' => $seo_desc,
+					'seo_keyword' => $seo_keyword,
 					'researved_at' => '0000-00-00 00:00:00',
 					'category' => '',
-					'new' => 1,
+					'new' => $new,
 				);
 			}
 		}
-		echo("<pre>make db data done</pre>\n");
-		
-//		var_dump($db_articles);
-//		var_dump($blog_articles_error);
 		
 		// DB登録
 		foreach ($db_articles as $db_article) {
@@ -443,8 +468,7 @@ class CronController2 extends BaseController {
 				Article2::create($db_article);
 			}
 		}
-		//echo("<pre>update db done</pre>\n");
-		//echo("<pre>all done\n</pre>\n");
+		Log::info("update db done");
 
 		// 処理終了時間
 		$time_end = microtime(true);
@@ -482,12 +506,16 @@ rss取得失敗数: %d
 新規登録
 ----------
 %d 件
+
+
+rss失敗
+----------
+%d 件
 <code>
 %s
 </code>
 
-
-失敗
+記事失敗
 ----------
 %d 件
 <code>
@@ -496,20 +524,26 @@ rss取得失敗数: %d
 </pre>
 EOS
 ;
-		printf($out,
-			$time_end - $time_start,
-			count($rss_list),
-			count($rss_list_error),
-			count($blog_articles),
-			count($blog_articles_error['registered']),
-			count($blog_articles_error['fetch']),
-			count($blog_articles_error['over']),
-			count($blog_articles_error['ng']),
-			count($db_articles_display),
-			var_export($db_articles_display, true),
-			count($blog_articles_error['fetch']) + count($blog_articles_error['over']) + count($blog_articles_error['ng']),
-			var_export($blog_articles_error_display, true)
-		);
+		if (!Input::has('cmd')) {
+			printf($out,
+				$time_end - $time_start,
+				count($rss_list),
+				count($rss_list_error),
+				count($blog_articles),
+				count($blog_articles_error['registered']),
+				count($blog_articles_error['fetch']),
+				count($blog_articles_error['over']),
+				count($blog_articles_error['ng']),
+				count($db_articles_display),
+				count($rss_list_error),
+				var_export($rss_list_error, true),
+				count($blog_articles_error['fetch']) + count($blog_articles_error['over']) + count($blog_articles_error['ng']),
+				var_export($blog_articles_error_display, true)
+			);
+		}
+		$msg = sprintf("rssGet done: rss(%d), rss_err(%d), article(%d), article_err(%d)", count($rss_list), count($rss_list_error), count($db_articles_display), count($blog_articles_error['fetch']) + count($blog_articles_error['over']) + count($blog_articles_error['ng']));
+		Log::info($msg);
+		exit;
 	}
 	
 	
@@ -517,6 +551,7 @@ EOS
 	public function rssPost(){
 		// 処理開始時間
 		$time_start = microtime(true);
+		Log::info('rssPost start');
 		
 		// 処理全体のタイムアウト時間を設定する
 		set_time_limit(self::MAX_TIME_LIMIT);
@@ -546,10 +581,19 @@ EOS
 			}
 			
 			// 投稿候補記事取得
-			$query = "SELECT id, url, title, imgurl, movid, movlink, movSite, tag, description FROM article2 USE INDEX (acc_new) WHERE acc = '$acc' AND new = '1'";
+			if (Config::get('app.manu')) {
+				// 手動投稿ツール。予約投稿時間が設定された記事のみ
+				$query = "SELECT id, url, title, imgurl, movid, movlink, movSite, tag, category, description, seo_title, title_rewrite, seo_desc, seo_keyword, researved_at FROM article2 USE INDEX (acc_new) WHERE acc = '$acc' AND new = '1' AND researved_at <> '0000-00-00 00:00:00' AND researved_at <> '' AND researved_at IS NOT NULL";
+			} else {
+				// 自動投稿ツール
+				$query = "SELECT id, url, title, imgurl, movid, movlink, movSite, tag, category, description, seo_title, title_rewrite, seo_desc, seo_keyword, researved_at FROM article2 USE INDEX (acc_new) WHERE acc = '$acc' AND new = '1'";
+			}
 			$article_list = DB::select($query); 
 			
 			foreach ($article_list as $article) {
+				$msg = sprintf("post start %d", $article->id);
+				Log::debug($msg);
+				
 				// 記事チェック
 				// チェックに引っかかった記事はnewフラグを落として次へ
 				// 画像
@@ -561,6 +605,8 @@ EOS
 							'article' => $article,
 						);
 						Article2::where('id', $article->id)->update(array('new' => 0));
+						$msg = sprintf("no image ignore: article_id(%s)", $article->id);
+						LOG::info($msg);
 						continue;
 					}
 				}
@@ -572,6 +618,8 @@ EOS
 						'article' => $article,
 					);
 					Article2::where('id', $article->id)->update(array('new' => 0));
+					$msg = sprintf("too long title length ignore: article_id(%s)", $article->id);
+					LOG::info($msg);
 					continue;
 				}
 				// 動画情報
@@ -583,13 +631,19 @@ EOS
 							'article' => $article,
 						);
 						Article2::where('id', $article->id)->update(array('new' => 0));
+						$msg = sprintf("no movie info ignore: article_id(%s)", $article->id);
+						LOG::info($msg);
 						continue;
 					}
 				}
 				
 				// 投稿内容作成
 				$wptitle = $site->wptitle;
-				$wptitle = str_replace('#title#', $article->title, $wptitle);
+				if (!empty($article->title_rewrite)) {
+					$wptitle = str_replace('#title#', $article->title_rewrite, $wptitle);
+				} else {
+					$wptitle = str_replace('#title#', $article->title, $wptitle);
+				}
 				
 				$wpdesc = "";
 				if (!empty($site->isNeedmov)) {
@@ -605,6 +659,8 @@ EOS
 								'article' => $article,
 							);
 							Article2::where('id', $article->id)->update(array('new' => 0));
+							$msg = sprintf("not set template ignore: article_id(%s), movSite(%s)", $article->id, $article->movSite);
+							LOG::info($msg);
 							continue;
 						}
 						$wpdesc = str_replace('#title#', $article->title, $wpdesc);
@@ -624,6 +680,8 @@ EOS
 								'article' => $article,
 							);
 							Article2::where('id', $article->id)->update(array('new' => 0));
+							$msg = sprintf("not set link template ignore: article_id(%s), movSite(%s)", $article->id, $article->movSite);
+							LOG::info($msg);
 							continue;
 						}
 						$wpdesc = str_replace('#title#', $article->title, $wpdesc);
@@ -643,43 +701,11 @@ EOS
 				
 				//var_dump($wptitle, $wpdesc);
 				
-				// 投稿
-				// http://nekoriki.net/47 を参考にしている
 				$client_ixr = new IXR_Client($site->wphost);
-				$query = array(
-					'post_status' => $site->post_status, // 投稿状態
-					'post_title' => $wptitle, // タイトル
-					'post_content' => $wpdesc, // 本文
-				);
-				if (!empty($article->tag)) {
-					$query['terms_names']['post_tag'] = explode(',', $article->tag);
-				}
-				if (!empty($site->isPostCategory) && !empty($article->movSite)) {
-					$query['terms_names']['category'] = array($article->movSite);
-				}
-				$status_ixr = $client_ixr->query(
-					"wp.newPost", //使うAPIを指定（wp.newPostは、新規投稿）
-					1, // blog ID: 通常は1、マルチサイト時変更
-					$site->wpuser, // ユーザー名
-					$site->wppass, // パスワード
-					$query
-				);
-				$postid_ixr = "";
-				if(!$status_ixr){
-					$article_error[] = array(
-						'reason' => "failed post",
-						'acc' => $site->acc,
-						'msg' => $client_ixr->getErrorCode(). ': '. $client_ixr->getErrorMessage(),
-						'article' => $article,
-					);
-					continue;
-				}
-				$postid_ixr = $client_ixr->getResponse(); //返り値は投稿ID
-				
-				// アイキャッチ投稿
-				// http://nekoriki.net/50 を参考にしている
 				$img_ixr_id = "";
 				if (!empty($site->isEyecatch)) {
+					// アイキャッチ投稿
+					// http://nekoriki.net/50 を参考にしている
 					$img_info = @getimagesize($article->imgurl);
 					if (!$img_info) {
 						// 画像取得失敗
@@ -689,6 +715,8 @@ EOS
 							'article' => $article,
 						);
 						Article2::where('id', $article->id)->update(array('new' => 0));
+						$msg = sprintf("failed fetch image file: article_id(%s), imgurl(%s)", $article->id, $article->imgurl);
+						Log::warning($msg);
 						continue;
 					}
 					$bits_ixr = new IXR_Base64(@file_get_contents($article->imgurl));
@@ -705,7 +733,6 @@ EOS
 							'type' => $img_info['mime'],
 							'bits' => $bits_ixr,
 							'overwrite' => true,
-							'post_id' => $postid_ixr,
 						)
 					);
 					if(!$status_ixr){
@@ -716,11 +743,76 @@ EOS
 							'article' => $article,
 						);
 						Article2::where('id', $article->id)->update(array('new' => 0));
+						$msg = sprintf("failed post eyecatch: article_id(%s), imgurl(%s), msg(%s)", $article->id, $article->imgurl, $client_ixr->getErrorCode(). ': '. $client_ixr->getErrorMessage());
+						Log::warning($msg);
 						continue;
 					}
 					$img_ixr = $client_ixr->getResponse();
 					$img_ixr_id = $img_ixr['id'];
+				}
+				
+				// 記事投稿
+				// http://nekoriki.net/47 を参考にしている
+				// クエリ作成
+				$query = array(
+					'post_title' => $wptitle, // タイトル
+					'post_content' => $wpdesc, // 本文
+				);
+				// -投稿状態
+				if (!empty($article->researved_at) && $article->researved_at != '0000-00-00 00:00:00') {
+					$query['post_status'] = 'future';
+					$post_date_ixr = new IXR_Date(strtotime($article->researved_at));
+					$query['post_date'] = $post_date_ixr;
+				} elseif ($site->post_status == 'draft') {
+					$query['post_status'] = 'draft';
+				} else {
+					$query['post_status'] = 'publish';
+				}
+				// -タグ
+				if (!empty($article->tag)) {
+					$query['terms_names']['post_tag'] = explode(',', $article->tag);
+				}
+				// -カテゴリ
+				if (!empty($article->category)) {
+					$category_id_arr = explode(',', $article->category);
+					$query['terms']['category'] = $category_id_arr;
+				} elseif (!empty($site->isPostCategory) && !empty($article->movSite)) {
+					$query['terms_names']['category'] = array($article->movSite);
+				}
+				// -SEO
+				if (!empty($article->seo_title)) {
+					$query['custom_fields'][] = array('key' => '_aioseop_title', 'value' => $article->seo_title);
+				}
+				if (!empty($article->seo_keyword)) {
+					$query['custom_fields'][] = array('key' => '_aioseop_keywords', 'value' => $article->seo_keyword);
+				}
+				if (!empty($article->seo_desc)) {
+					$query['custom_fields'][] = array('key' => '_aioseop_description', 'value' => $article->seo_desc);
+				}
+				// 投稿リクエスト
+				$status_ixr = $client_ixr->query(
+					"wp.newPost", //使うAPIを指定（wp.newPostは、新規投稿）
+					1, // blog ID: 通常は1、マルチサイト時変更
+					$site->wpuser, // ユーザー名
+					$site->wppass, // パスワード
+					$query
+				);
+				$postid_ixr = "";
+				if(!$status_ixr){
+					$article_error[] = array(
+						'reason' => "failed post",
+						'acc' => $site->acc,
+						'msg' => $client_ixr->getErrorCode(). ': '. $client_ixr->getErrorMessage(),
+						'article' => $article,
+					);
+					$msg = sprintf("failed post: article_id(%s), msg(%s)", $article->id, $client_ixr->getErrorCode(). ': '. $client_ixr->getErrorMessage());
+					Log::warning($msg);
+					continue;
+				}
+				$postid_ixr = $client_ixr->getResponse(); //返り値は投稿ID
+				
 					
+				if (!empty($site->isEyecatch)) {
 					// アイキャッチ設定
 					$status_ixr = $client_ixr->query(
 						"wp.editPost",
@@ -738,15 +830,18 @@ EOS
 							'article' => $article,
 						);
 						Article2::where('id', $article->id)->update(array('new' => 0));
+						$msg = sprintf("failed set eyecatch: article_id(%s), imgurl(%s), postid(%s), msg(%s)", $article->id, $article->imgurl, $postid_ixr, $client_ixr->getErrorCode(). ': '. $client_ixr->getErrorMessage());
+						Log::warning($msg);
 						continue;
 					}
 					$thumb_ixr = $client_ixr->getResponse();
 				}
 				
-				// newフラグを落とす。投稿日時を更新する
+				// newフラグを落とす。投稿日時を更新する。予約投稿日時をクリアする。
 				Article2::where('id', $article->id)->update(array(
 					'new' => 0,
 					'posted_at' => date('Y-m-d H:i:s', time()),
+					'researved_at' => '0000-00-00 00:00:00',
 				));
 				
 				$article_done[] = array(
@@ -754,8 +849,10 @@ EOS
 					'article' => $article,
 					'postid' => $postid_ixr,
 					'img' => $img_ixr_id,
+					'query' => $query,
 				);
-				continue;
+				$msg = sprintf("post done %d", $article->id);
+				Log::debug($msg);
 			}
 		}
 		
@@ -803,19 +900,24 @@ EOS
 </pre>
 EOS
 ;
-		printf($out,
-			$time_end - $time_start,
-			count($article_done_display) + count($article_ignore_display) + count($article_error_display),
-			count($article_done_display),
-			count($article_ignore_display),
-			count($article_error_display),
-			count($article_done_display),
-			var_export($article_done_display, true),
-			count($article_ignore_display),
-			var_export($article_ignore_display, true),
-			count($article_error_display),
-			var_export($article_error_display, true)
-		);
+		if (!Input::has('cmd')) {
+			printf($out,
+				$time_end - $time_start,
+				count($article_done_display) + count($article_ignore_display) + count($article_error_display),
+				count($article_done_display),
+				count($article_ignore_display),
+				count($article_error_display),
+				count($article_done_display),
+				var_export($article_done_display, true),
+				count($article_ignore_display),
+				var_export($article_ignore_display, true),
+				count($article_error_display),
+				var_export($article_error_display, true)
+			);
+		}
+		$msg = sprintf('rssPost done: article(%d), article_error(%d)', count($article_done_display), count($article_error_display));
+		Log::info($msg);
+		exit;
 	}
 	
 	
@@ -838,7 +940,7 @@ EOS
 			$url_parsed = parse_url($url);
 			if ($url_parsed === false || empty($url_parsed['host'])) {
 				$urls_error[$url] = true;
-				echo("<pre>invalid url $url</pre>\n");
+				Log::warning("invalid url $url");
 				continue;
 			}
 			$domain = $url_parsed['host'];
@@ -875,6 +977,9 @@ EOS
 		//// わかりやすい書き方が思いつかなかったコードここまで
 		
 		foreach ($urls_para_safe as $urls_chunk) {
+			$msg = sprintf("try multi fetch %s", implode(" ", $urls_chunk));
+			Log::info($msg);
+			
 			// curl_multiハンドラ
 			$mh = curl_multi_init();
 			
@@ -896,12 +1001,12 @@ EOS
 			// curl_multi実行完了待ち
 			$failcnt = 0;
 			do switch (curl_multi_select($mh, self::MULTI_CURL_TIMEOUT)) {
-				case -1: // selectに失敗。通常起きないが稀に起きるらしい
+				case -1: // selectに失敗。最初は必ず通過する
 					$failcnt++;
 					if ($failcnt > self::MULTI_CURL_MAX_FAIL_CNT) {
 						// curl_multi結果待ち失敗
-						echo ("failed curl_multi_select");
-						return false;
+						curl_multi_close($mh);
+						continue 3;
 					}
 					usleep(10);
 					do {
@@ -910,9 +1015,9 @@ EOS
 					continue 2;
 
 				case 0:  //タイムアウト
-						//
-						echo ("timeout curl_multi_select");
-						continue 2;
+						Log::warning("timeout curl_multi_select");
+						curl_multi_close($mh);
+						continue 3;
 
 				default: //curlの結果が返ってきた
 					do {
@@ -936,8 +1041,10 @@ EOS
 						if ($urls_result[$url]['response'] === false) {
 							//取得失敗
 							$urls_error[$url] = true;
+							Log::warning("failed fetch $url: http_code($http_code)");
 						}
 						
+						Log::info("fetch done $url");
 						curl_multi_remove_handle($mh, $raised['handle']);
 						curl_close($raised['handle']);
 					} while ($remains);
