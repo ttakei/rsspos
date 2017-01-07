@@ -2,8 +2,29 @@
 
 return array(
 
-	'debug' => array_key_exists('REMOTE_ADDR', $_SERVER)?in_array($_SERVER['REMOTE_ADDR'], array('180.214.224.5','124.97.12.102')):false,
+	//'debug' => array_key_exists('REMOTE_ADDR', $_SERVER)?in_array($_SERVER['REMOTE_ADDR'], array('124.101.195.11','180.214.224.5','124.97.12.102')):false,
+	'debug' => false,
+	
+	'manu' => true,
 
+	'movtag'=>[
+		'xvideo'=>'<iframe src="http://flashservice.xvideos.com/embedframe/#movid#" frameborder=0 width=360 height=240 scrolling=no></iframe>',
+		'fc2'=>'<script src="http://static.fc2.com/video/js/outerplayer.min.js" url="http://video.fc2.com/a/content/#movid#/" tk="TmpBeE5qRTNNamc9" tl="#title#" sj="15" d="3605" w="360" h="240"  charset="UTF-8"></script>',
+		'fc2ja'=>'<script src="http://static.fc2.com/video/js/outerplayer.min.js" url="http://video.fc2.com/ja/a/content/#movid#/" tk="TmpBeE5qRTNNamc9" tl="アダルト動画" sj="15" d="3605" w="360" h="240"  charset="UTF-8"></script>',
+		'xhamster'=>'<iframe width="360" height="240" src="http://xhamster.com/xembed.php?video=#movid#" frameborder="0" scrolling="no"></iframe>',
+		'redtube'=>'<iframe src="http://embed.redtube.com/?id=#movid#&bgcolor=000000" frameborder="0" width="360" height="240" scrolling="no"></iframe>',
+		'erovideonet'=>'<script type="text/javascript" src="http://ero-video.net/js/embed_evplayer.js"></script><script type="text/javascript">embedevplayer("mcd=#movid#", 360, 320);</script>',
+		'pornhub'=>'<iframe src="http://www.pornhub.com/embed/#movid#" frameborder="0" width="360" height="240" scrolling="no"></iframe>',
+		'pipii'=>'<iframe src="http://www.pipii.tv/player?id=#movid#&embed=1&width=360&height=240" width="360" height="240" class="pipii_player_iframe" title="#title#" style="vertical-align:bottom;"></iframe><script type="text/javascript" src="http://www.pipii.tv/js/player_embed.js"></script>',
+		'javynow'=>'<iframe width="360" height="240" src="http://javynow.com/player.php?id=#movid#&n=1&s=1$h=480" id="player30419" style="border:none;" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>',
+		'VJAV'=>'<iframe width="360" height="240" src="http://jp.vjav.com/embed/#movid#" frameborder="0" allowfullscreen webkitallowfullscreen mozallowfullscreen oallowfullscreen msallowfullscreen></iframe>',
+		'ShareVideos'=>'<iframe width="360" height="240" src="http://embed.share-videos.se/auto/embed/#movid#" frameborder=0 width=100% height=480 scrolling=no allowFullScreen></iframe>',
+		'TokyoTube'=>'<script type="text/javascript" src="http://www.tokyo-tube.com/embedcode/v#movid#/u/player/w360/h240"></script>',
+		'Tube8'=>'<iframe width="360" height="240" src="https://www.tube8.com/embed/#movid#" frameborder="0" height="481" width="608" scrolling="no" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true" name="t8_embed_video"></iframe>',
+		'spankbang'=>'<iframe width="360" height="240" src="http://spankbang.com/#movid#/embed/" frameborder="0" scrolling="no" allowfullscreen></iframe>',
+		'youporn'=>'<iframe width="360" height="240" src="http://www.youporn.com/embed/#movid#" frameborder=0 height="481" width="608" scrolling=no name="yp_embed_video"></iframe>',
+		'txxx'=>'<iframe width="360" height="240" src="http://www.txxx.com/embed/#movid#" frameborder="0" allowfullscreen webkitallowfullscreen mozallowfullscreen oallowfullscreen msallowfullscreen></iframe>',
+	],
 	'movService'=>[
 		//'movdefault'=>'該当なし',
 		'xvideo'=>'xvideo',
@@ -111,7 +132,7 @@ return array(
 		
 		'txxx__movlink'=>'<div class="entry-read"><a href="#movlink#" target="_blank">動画はこちら</a></div>',
 	],
-
+	
 	'url' => 'http://localhost',
 
 	'timezone' => 'Asia/Tokyo',

@@ -1,3 +1,5 @@
+# auto
+
 ## target server
 
     host : 153.122.10.11
@@ -11,29 +13,29 @@
 
 ## spec
 
-### 重複タイトル除外
+### �d���^�C�g�����O
 
-    articleテーブルで同一blogidの同タイトルは追加しない
-    現在の重複URLチェックはそのまま。
+    article�e�[�u���œ���blogid�̓��^�C�g���͒ǉ����Ȃ�
+    ���݂̏d��URL�`�F�b�N�͂��̂܂܁B
 
-### 絞りこみ投稿
+### �i�肱�ݓ��e
 
-    タイトルに指定キーワード(ngword)がある場合は、記事取得しない
-    タイトルに投稿ワードが存在する場合のみブログに投稿。
+    �^�C�g���Ɏw��L�[���[�h(ngword)������ꍇ�́A�L���擾���Ȃ�
+    �^�C�g���ɓ��e���[�h�����݂���ꍇ�̂݃u���O�ɓ��e�B
 
-### タイトルに女優名を付与
+### �^�C�g���ɏ��D����t�^
 
-    フォーマット設定で有無を確認。(空の場合は付与しない)
-    女優名辞書
-    女優名がヒットしない場合は、指定文字列（文字＋レート）の中からランダムで付与。
+    �t�H�[�}�b�g�ݒ�ŗL�����m�F�B(��̏ꍇ�͕t�^���Ȃ�)
+    ���D������
+    ���D�����q�b�g���Ȃ��ꍇ�́A�w�蕶����i�����{���[�g�j�̒����烉���_���ŕt�^�B
 
-### ライブドア投稿
+### ���C�u�h�A���e
 
-    現在、WP , FC2のみだが、ライブドアブログも対応させたい
+    ���݁AWP , FC2�݂̂����A���C�u�h�A�u���O���Ή���������
 
-### 文字数絞り
+### �������i��
 
-    ブログに投稿する文字列が指定文字数以上の場合は、投稿しない機能
+    �u���O�ɓ��e���镶���񂪎w�蕶�����ȏ�̏ꍇ�́A���e���Ȃ��@�\
 
 
 ## laravel install
@@ -71,7 +73,7 @@
     5,35 * * * * curl http://rsspos.net/cron/rssGet.php;curl http://rsspos.net/cron/rssGet2.php
     */5 * * * * curl http://rsspos.net/cron/posts.php
 
-    ↓
+    ��
 
     # for rsspos.net NEW
     */15 * * * * curl http://rsspos.net/cron/cnt
@@ -81,3 +83,23 @@
 ## livedoor blog
 
     http://avmovie19.blog.jp
+
+
+# manu
+
+## server
+
+    http://153.122.10.11/
+    http://153.122.10.11:8888/pma21194a/
+
+## memo
+
+
+## crontab
+
+    SHELL=/bin/bash
+    # for IP
+    */15 * * * * curl http://153.122.10.11/cron/cnt.php
+    5,35 * * * * curl http://153.122.10.11/cron/rssGet.php;curl http://153.122.10.11/cron/rssGet2.php
+    */5 * * * * curl http://153.122.10.11/cron/posts.php
+

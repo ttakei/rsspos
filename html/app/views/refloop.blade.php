@@ -70,7 +70,7 @@
 			<tr>
 				@endforeach
 				@else
-			<tr><td colspan="7">管理サイトがありません</td></tr>
+			<tr><td colspan="4">管理サイトがありません</td></tr>
 				@endif
 		</table>
 	<!--/.panel-body--></div>

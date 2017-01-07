@@ -30,8 +30,10 @@
     {{Form::label('sitetype','種別')}}
     {{Form::rbinline('sitetype','',Config::get('app.sitetype'),$site['sitetype'] or 1)}}
 
+    @if(!Config::get('app.manu'))
     {{Form::label('post_status','WP投稿状態')}}
     {{Form::rbinline('post_status','',Config::get('app.post_status'),$site['post_status'])}}
+    @endif
 
     {{Form::selectField('category','カテゴリ &raquo; <small>管理画面で利用</small>',Config::get('app.category'),$site['category'])}}
 
@@ -45,6 +47,9 @@
 
     {{Form::label('postType','投稿方法')}}
     {{Form::rbinline('postType','',array(0=>'投稿しない',1=>'動画投稿(リアルタイム)'),$site['postType'])}}
+    @if(Config::get('app.manu'))
+    {{Form::textareaField('tags','タグ一覧(,区切り)',$site['tags'],['rows'=>3])}}
+    @endif
 
     <!-- Nav tabs -->
     <ul class="nav nav-tabs" role="tablist">
@@ -87,9 +92,12 @@
         <div class="alert alert-info" role="alert">投稿内容</div>
         {{Form::textField('wptitle','タイトル',$site['wptitle'])}}
         {{Form::textareaField('wpdesc','本文 - #title# / #imgurl# / #url# / #content#(スクレイピングしたデータ)',$site['wpdesc'])}}
+
+        @if(!Config::get('app.manu'))
         {{Form::label('isPostCategory','動画サイト名をカテゴリとして送信する設定。WP側で要設定')}}
-        {{Form::rb('isPostCategory',array(0=>'カテゴリを送信しない',1=>'カテゴリを送信する'),$site['isPostCategory'])}}
+        {{Form::rb('isPostCategory',array(0=>'動画サイト名をカテゴリを送信しない',1=>'動画サイト名をカテゴリを送信する'),$site['isPostCategory'])}}
         <div style="color:red">↑送信する場合、WP側でカテゴリ  <span style="font-weight:bold">Xvideo</span>, <span style="font-weight:bold">FC2</span>, <span style="font-weight:bold">FC2ja</span>, <span style="font-weight:bold">Xhamster</span>, <span style="font-weight:bold">Redtube</span>, <span style="font-weight:bold">Erovideonet</span>, <span style="font-weight:bold">Pornhub</span>, <span style="font-weight:bold">Pipii</span>, <span style="font-weight:bold">Javynow</span>, <span style="font-weight:bold">VJAV</span>, <span style="font-weight:bold">ShareVideos</span>, <span style="font-weight:bold">TokyoTube</span>, <span style="font-weight:bold">Tube8</span>, <span style="font-weight:bold">Spankbang</span>, <span style="font-weight:bold">Youporn</span>, <span style="font-weight:bold">Txxx</span> をすべて、予め登録してください。WPにカテゴリがないと投稿に失敗します。</div>
+        @endif
 
         {{Form::textField('seotitle','SEO Pack title - #title# / #imgurl# / #url#',$site['seotitle'])}}
         {{Form::textField('seodesc','SEO Pack description - #title# / #imgurl# / #url#',$site['seodesc'])}}

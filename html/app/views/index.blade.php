@@ -44,6 +44,5 @@
 @section('content')
 <div class="content col-lg-10">
 <div class="well well-success">RSS Widget システム</div>
-<!--<img src="img/sc1.png">-->
 </div>
 @stop

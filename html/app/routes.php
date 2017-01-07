@@ -16,29 +16,29 @@
 //5,35 * * * * curl http://rssweb.net/cron/rssGet.php;curl http://rssweb.net/cron/rssGet2.php
 
 View::composer('*',function($view){
-	if(Session::has('nickname'))
+	if(Session::has('nickname')) {
 		$cfg['nickname']=Session::get('nickname');
+		$cfg['ASP_NAME']='RSS Widget';
+		$cfg['nowCalendar']='選択してください';
+		$cfg['selected']='hide';
+		if(Session::has('acc')){
+			$cfg['acc']=Session::get('acc');
+		}else{
+			$cfg['acc']='アカウント名';
+		}
+		$cfg['HTMLselectsite'] = siteList1();
 
-	$cfg['ASP_NAME']='RSS Widget';
-	$cfg['nowCalendar']='選択してください';
-	$cfg['selected']='hide';
-	if(Session::has('acc')){
-		$cfg['acc']=Session::get('acc');
-	}else{
-		$cfg['acc']='アカウント名';
+		$news = News::all();	// お知らせ用
+
+		$view->with(compact('cfg','news'));
 	}
-	$cfg['HTMLselectsite'] = siteList1();
-
-	$news = News::all();	// お知らせ用
-
-	$view->with(compact('cfg','news'));
 });
 
 Route::get('test/remove',function(){
-	$idAry = Article::groupBy(['blogid','url'])->havingRaw('count(*)>1')->lists('id');
+	$idAry = Article2::groupBy(['blogid','url'])->havingRaw('count(*)>1')->lists('id');
 	foreach($idAry as $id){
 		echo "delete id : $id <br>";
-		Article::where('id',$id)->delete();
+		Article2::where('id',$id)->delete();
 	}
 });
 
@@ -85,17 +85,17 @@ Route::get('test/acc',function(){
 		// var_dump($blogs);
 		// echo '<hr>';
 		foreach($blogs as $blogid):
-			Article::where('blogid',$blogid)->update(['acc'=>$site->acc]);
+			Article2::where('blogid',$blogid)->update(['acc'=>$site->acc]);
 		endforeach;
 	endforeach;
 	// $step = 1000;
 	// for($i=0;$i<10;$i++){
-	// 	$article = Article::orderBy('created_at','desc')->take($step)->offset($i*$step)->get();
+	// 	$article = Article2::orderBy('created_at','desc')->take($step)->offset($i*$step)->get();
 	// 	foreach($article as $item){
-	// 		//$chk = Article::where('movSite',$item->movSite)->where('movid',$item->movid)->
+	// 		//$chk = Article2::where('movSite',$item->movSite)->where('movid',$item->movid)->
 	// 		if($blog = Blogs::where('id',$item->blogid)->first()){
 	// 			printf("article_id:%d blog_id:%d site_acc:%s<br>",$item->id,$item->blogid,$item->blog->acc);
-	// 			//Article::where('id',$item->id)->update(['acc'=>$item->blog->acc]);
+	// 			//Article2::where('id',$item->id)->update(['acc'=>$item->blog->acc]);
 	// 		}
 	// 	}
 	// 	printf("%d - %d<hr>",$i*$step,($i+1)*$step);
@@ -108,7 +108,7 @@ Route::get('test/dup',function(){
 	$movid=(\Input::has('movid'))?\Input::get('movid'):17378767;
 	$movSite=(\Input::has('movSite'))?\Input::get('movSite'):'xvideo';
 
-	$_chk = Article::where('movid',$movid)->where('movSite',$movSite);
+	$_chk = Article2::where('movid',$movid)->where('movSite',$movSite);
 	//var_dump($_chk->get());
 	//var_dump($_chk);
 
@@ -120,10 +120,10 @@ Route::get('test/dup',function(){
 	//var_dump($_chk->blog->toSql());
 	// foreach($_dupChk as $_dupChk_v){
 	// 	if($_dupChk_v->blog->acc != $site->acc){
-	// 		Article::where('id',$item_id)->update($input);
+	// 		Article2::where('id',$item_id)->update($input);
 	// 		break;
 	// 	}else{
-	// 		//Article::where('id',$item_id)->delete();
+	// 		//Article2::where('id',$item_id)->delete();
 	// 		echo "<div class='label label-danger'>この動画はすでに存在していますので削除しました</div><br>";
 	// 		//break;
 	// 	}
@@ -237,18 +237,17 @@ Route::get('test/wp/getCategoryList/{id?}',function($id=73){
 
 });
 
+/////////////////////////////////////////////////////////////////////
+// トップ、ログイン
 Route::get('/', array('as'=>'top',function()
 {
 	$cookie = json_decode(Cookie::get('rsswidget'),true);
-
 	return View::make('index',array('ASP_NAME'=>'RSS WIDGET','cookie'=>$cookie));
 }));
-
 Route::get('/login', function()
 {
 	return 'ログインエラー';
 });
-
 Route::post('/login', function()
 {
 	$isRemember = Input::get('remember');
@@ -264,219 +263,282 @@ Route::post('/login', function()
 	if($res){
 		Session::put('user', $res[0]->id);
 		Session::put('nickname', $res[0]->nickname);
+		Session::put('role',$res[0]->role);
 		return Redirect::intended('/rss/site');
 	}else{
 		return Redirect::back()->withInput();
 	}
 });
-
 Route::get('/logout', array('as'=>'logout',function()
 {
 	Session::flush();
 	return Redirect::to('/');
 }));
 
-Route::post('/regist',array('before'=>'csrf',function(){
-	//POSTデータの受信
-	$inputs=Input::except(array('_token'));
-	//バリデーションルールの設定
-	$rules=array(
-		'email'=>'required',
-		'password'=>'required|min:6|max:15',
-		'password2'=>'required|min:6|max:15',
-		'nickname'=>'required|max:30',
-		'sex'=>'required',
-		'birth'=>'required'
-	);
-	//バリデーション処理
-	$val=Validator::make($inputs,$rules);
-	//バリデーションNGなら
-	if($val->fails()){
-		return Redirect::back()
-			->withErrors($val)
-			->withInput();
-	}
-	//バリデーションOKなら
-	User::create($inputs);
-	return Redirect::to('/confirm');
-}));
+/////////////////////////////////////////////////////////////////////
+// ユーザー
+Route::get('admin/user',['uses'=>'UserController@index','as'=>'admin.user.index']);
+Route::get('admin/user/create',['uses'=>'UserController@create','as'=>'admin.user.create']);
+Route::post('admin/user',['uses'=>'UserController@store','as'=>'admin.user.store']);
+Route::get('admin/user/edit/{id}',['uses'=>'UserController@edit','as'=>'admin.user.edit']);
+Route::post('admin/user/update',['uses'=>'UserController@update','as'=>'admin.user.update']);
+Route::get('admin/user/delete/{id}',['uses'=>'UserController@delete','as'=>'admin.user.delete']);
 
-Route::get('/regist',array('as'=>'regist',function()
-{
-	// ここ作る
-	return 'regist';
-}));
-
-Route::get('/regist/confirm',array('as'=>'confirm',function()
-{
-	// ここ作る
-	return 'confirm';
-}));
-
-Route::get('/regist/fin',array('as'=>'fin'),function()
-{
-	return 'fin';
-});
-
-Route::get('/wppost',function()
-{
-
-	include_once('IXR_Library.php');
-
-	$sites = Sites::all();
-
-	foreach($sites as $siteValue){
-
-		// サイト選択 & 記事選択
-		// mode : selectXX
-		// selid : selXX
-
-		if($siteValue["wphost"]=='' || $siteValue['wpuser']=='' || $siteValue['wppass']=='') continue;
-		if($siteValue['postType']==1) continue;
-
-		$mode = $siteValue['select'.date('H')];
-		$selectid = $siteValue['sel'.date('H')];
-		echo "$mode | 0:IN高 1:返還率低 2:指定ID &raquo;";
-
-		switch($mode){
-			case 0:	// IN順
-				$blogs = Blogs::where('acc',$siteValue['acc'])->orderby('in','desc')->first();
-				break;
-			case 1:	// 返還率低い順
-				$blogs = Blogs::selectRaw('*,`out`/`in` as rate')->where('acc',$siteValue['acc'])->orderby('rate','asc')->first();
-				break;
-			case 2:	// ID指定
-				$idAry = explode(',',$selectid);
-				$blogs = Blogs::find($idAry[0]);
-				break;
-		}
-		echo 'selected blog is '.$blogs['id'].'<br>';
-		//var_dump(Session::all());
-		//var_dump(DB::getQueryLog());
-		//exit;
-
-		$item = Article::where('blogid',$blogs['id'])->orderby('utime','desc')->first()->toArray();
-
-		// 記事本文とseotitle,seodescを置換
-		$siteValue['wptitle'] = str_replace('#title#',$item['title'],$siteValue['wptitle']);
-		$siteValue['wptitle'] = str_replace('#imgurl#',$item['imgurl'],$siteValue['wptitle']);
-		$siteValue['wptitle'] = str_replace('#url#',$item['url'],$siteValue['wptitle']);
-
-		$siteValue['wpdesc'] = str_replace('#title#',$item['title'],$siteValue['wpdesc']);
-		$siteValue['wpdesc'] = str_replace('#imgurl#',$item['imgurl'],$siteValue['wpdesc']);
-		$siteValue['wpdesc'] = str_replace('#url#',$item['url'],$siteValue['wpdesc']);
-
-		$siteValue['seotitle'] = str_replace('#title#',$item['title'],$siteValue['seotitle']);
-		$siteValue['seotitle'] = str_replace('#imgurl#',$item['imgurl'],$siteValue['seotitle']);
-		$siteValue['seotitle'] = str_replace('#url#',$item['url'],$siteValue['seotitle']);
-
-		$siteValue['seodesc'] = str_replace('#title#',$item['title'],$siteValue['seodesc']);
-		$siteValue['seodesc'] = str_replace('#imgurl#',$item['imgurl'],$siteValue['seodesc']);
-		$siteValue['seodesc'] = str_replace('#url#',$item['url'],$siteValue['seodesc']);
-
-		//echo $siteValue['wpdesc'];
-
-		$client = new IXR_Client($siteValue['wphost']);
-
-		$status = $client->query(
-		  "wp.newPost", //使うAPIを指定（wp.newPostは、新規投稿）
-		  1, // blog ID: 通常は１、マルチサイト時変更
-		  $siteValue['wpuser'], // ユーザー名
-		  $siteValue['wppass'], // パスワード
-		  array(
-		    //'post_author' => 1, // 投稿者ID 未設定の場合投稿者名なしになる。
-		    'post_status' => 'publish', // 投稿状態
-		    'post_title' => $siteValue['wptitle'], // タイトル
-		    'post_content' => $siteValue['wpdesc'], //　本文
-				'custom_fields' => array(
-		      array('key' => '_aioseop_title', 'value' => $siteValue['seotitle']),
-		      array('key' => '_aioseop_keyword', 'value' => $siteValue['seokeyword']),
-		      array('key' => '_aioseop_description', 'value' => $siteValue['seodesc'])
-				),
-		    'terms' => array('category' => array(1))// カテゴリ追加
-		  )
-		);
-		if(!$status){
-		  die('error - '.$client->getErrorCode().' : '.$client->getErrorMessage());
-		}
-
-		$post_id = $client->getResponse(); //返り値は投稿ID
-
-		echo "<a href='".$siteValue['wphost']."'>".$siteValue['name']."</a>( $post_id ) finish<hr>";
-	}
-
-	return "all done<hr>";
-
-});
-Route::get('mypage',['uses'=>'AdminController@mypage','as'=>'mypage']);
+/////////////////////////////////////////////////////////////////////
+// マイページ
+Route::get('mypage',['before'=>'myauth','uses'=>'AdminController@mypage','as'=>'mypage']);
 Route::post('mypage/edit',['uses'=>'AdminController@mypagePost']);
 
-Route::get('rss',['uses'=>'AdminController@top','as'=>'top']);
-Route::get('rss/site',['uses'=>'AdminController@site','as'=>'site']);
-Route::get('rss/site/edit/{id?}',['uses'=>'AdminController@siteEdit','as'=>'site.edit']);
+/////////////////////////////////////////////////////////////////////
+// サイト
+Route::get('rss',['before'=>'myauth','uses'=>'AdminController@top','as'=>'top']);
+Route::get('rss/site',['before'=>'admauth','uses'=>'AdminController@site','as'=>'site']);
+Route::get('rss/site/edit/{id?}',['before'=>'admauth','uses'=>'AdminController@siteEdit','as'=>'site.edit']);
 Route::post('rss/site/edit',['uses'=>'AdminController@sitePost','as'=>'site.update']);
-Route::get('rss/site/del/{id?}',['uses'=>'AdminController@siteDel','as'=>'site.del']);
+Route::get('rss/site/del/{id?}',['before'=>'admauth','uses'=>'AdminController@siteDel','as'=>'site.del']);
+Route::post('/rss/site',array('before'=>'csrf',function(){
+	Session::put('acc',Input::get('acc'));
+	if(Session::get('role')=='writer'){
+		return Redirect::to('/rss/article');
+	}else{
+		return Redirect::to('/rss/blog');
+	}
+}));
 
-Route::get('rss/blog',['uses'=>'AdminController@blog','as'=>'blog']);
-Route::get('rss/blog/edit/{id?}',['uses'=>'AdminController@blogEdit','as'=>'blog.edit']);
+/////////////////////////////////////////////////////////////////////
+// ブログ
+Route::get('rss/blog',['before'=>'admauth','uses'=>'AdminController@blog','as'=>'blog']);
+Route::get('rss/blog/edit/{id?}',['before'=>'admauth','uses'=>'AdminController@blogEdit','as'=>'blog.edit']);
 Route::post('rss/blog/edit',['uses'=>'AdminController@blogPost']);
-Route::get('rss/blog/del/{id}',['uses'=>'AdminController@blogDel','as'=>'blog.del']);
+Route::get('rss/blog/del/{id}',['before'=>'admauth','uses'=>'AdminController@blogDel','as'=>'blog.del']);
 
+/////////////////////////////////////////////////////////////////////
+// 記事
+Route::get('rss/article',['before'=>'myauth','uses'=>'AdminController@article','as'=>'article']);
+// TODO: AdminContollerに処理を移す
+Route::get('/rss/article/edit/{id?}',array('before'=>'myauth','as'=>'article.edit',function($id=0)
+{
+	$cfg['nickname']=Session::get('nickname');
+	$cfg['ASP_NAME']='RSS Widget';
+	$cfg['selected']='';
+
+	include_once('./IXR_Library.php');
+
+	$site = Sites::where('acc',Session::get('acc'))->first();
+	//dd($site);
+
+	$client = new IXR_Client($site->wphost);
+
+	//if(Config::get('app.debug')) dd($site);
+
+	// カテゴリー取得
+	// $status = $client->query(
+	// 	"wp.getCategories",
+	// 	1,
+	// 	$site->wpuser,
+	// 	$site->wppass
+	// );
+	// if(Config::get('app.debug')){
+	// 	dd($client->getResponse());
+	// }
+
+	// タクソノミー取得(カテゴリー取得)
+	$status = $client->query(
+	  "wp.getTerms",
+	  1,
+	  $site->wpuser,
+	  $site->wppass,
+	  'category'
+	);
+
+	$categoryAry = [];
+	if(!$status){
+	  echo('error '.$client->getErrorCode().' : '.$client->getErrorMessage().'<br>');
+	}else{
+		//$categoryAry = $client->getResponse();
+		foreach($client->getResponse() as $v){
+			//var_dump($v);
+			$key = $v['term_id'];
+			$categoryAry[$key] = $v['name'];
+		}
+	}
+	//if(Config::get('app.debug')) dd($categoryAry);
+
+	// サイトセレクト
+	$cfg['HTMLselectsite'] = siteList1();
+
+	$articleObj = Article2::selectRaw('blogs.name as blogname,article2.*')
+	->leftJoin('blogs','blogs.id','=','article2.blogid')
+	->where('article2.id',$id)
+	->first();
+
+	//dd($articleObj);
+
+	$show = 1;
+	return View::make('articlesEdit',compact('cfg','articleObj','categoryAry','site', 'show'));
+
+}));
+// TODO: AdminContollerに処理を移す
+Route::post('/rss/article/edit',function()
+{
+	//dd(Input::all());
+
+	include_once('./IXR_Library.php');
+	$site = Sites::where('acc',Session::get('acc'))->first();
+	$client = new IXR_Client($site->wphost);
+	$status = $client->query(
+	  "wp.getTerms",
+	  1,
+	  $site->wpuser,
+	  $site->wppass,
+	  'category'
+	);
+
+	$categoryAry = [];
+	if(!$status){
+	  echo('error '.$client->getErrorCode().' : '.$client->getErrorMessage().'<br>');
+	}else{
+		//$categoryAry = $client->getResponse();
+		foreach($client->getResponse() as $v){
+			//var_dump($v);
+			$key = $v['term_id'];
+			$categoryAry[$key] = $v['name'];
+		}
+	}
+	// var_dump($categoryAry);echo '<hr>';
+
+	//dd(Input::all());
+	$id = Input::get('id');
+
+	$input = Input::except('_token','id','category','tag');
+
+	if(Input::has('category')){
+		$input['category'] = implode(',',Input::get('category'));
+	}else{
+		$input['category'] = '';
+	}
+	// var_dump(Input::get('category'));echo '<hr>';
+
+
+	// 2016/11/06
+	// タグ
+	if(Input::has('tag')){
+		$input['tag'] = implode(',',Input::get('tag'));
+	}else{
+		$input['tag'] = '';
+	}
+	// seo_keyword
+	$_cat = '';
+	if(Input::has('category') && is_array(Input::get('category'))){
+		foreach(Input::get('category') as $k=>$v){
+			$_cat .= $categoryAry[$v].',';
+		}
+		$_cat = substr($_cat,0,-1);
+	}
+
+	$input['seo_keyword'] = $_cat;
+	$input['seo_keyword'] .= (Input::has('tag'))?','.$input['tag']:'';
+	// seo_title
+	$input['seo_title'] = $input['title_rewrite'];
+
+	// newフラグを立てないと投稿されない
+	$input['new'] = '1';
+	
+	//dd($input);
+
+	// $rules=array(
+	// 	'siteurl'=>'required|url',
+	// 	'rssurl'=>'sometimes|url',
+	// 	'name'=>'required|max:50'
+	// );
+	// //バリデーション処理
+	// $val=Validator::make($input,$rules);
+	// //バリデーションNGなら
+	// if($val->fails()){
+	// 	return Redirect::back()->withErrors($val)->withInput();
+	// }
+
+	Article2::where('id',$id)->update($input);
+
+	return Redirect::to('/rss/article');
+});
+// TODO: AdminContollerに処理を移す
+Route::get('/rss/article/del/{id}',array('before'=>'myauth',function($id)
+{
+	Article2::destroy($id);
+	return Redirect::to('/rss/article');
+}))->where('id','[0-9]+');
+// TODO: AdminContollerに処理を移す
+Route::get('/rss/check',['before'=>'admauth','as'=>'writer.check',function(){
+	//$cfg['nickname']=Session::get('nickname');
+	//$cfg['ASP_NAME']='RSS Widget';
+	$cfg['selected']='';
+
+	// サイトセレクト
+	$cfg['HTMLselectsite'] = siteList1();
+
+	// サイトに対するブログを選択
+	$blogs = Blogs::where('acc',Session::get('acc'))->orderby('in','desc')->lists('id');
+
+	// 予約投稿時刻が入力されている && 動画サービスありの記事を抽出
+	$articles = Article2::selectRaw("blogs.name, blogs.siteurl,article2.*")
+	->where('movSite','<>','')
+	->where('researved_at','<>','0000-00-00 00:00:00')
+	->leftJoin('blogs','blogs.id','=','article2.blogid')
+	->where('blogs.acc',Session::get('acc'))
+	->whereIn('article2.blogid',$blogs)
+	->orderBy('updated_at','DESC')
+	->paginate(30);
+
+	$show = 1;
+	return View::make('check.index',array('cfg'=>$cfg,'articles'=>$articles,'show'=>$show));
+}]);
+
+
+/////////////////////////////////////////////////////////////////////
+// パーツ修正・追加（もう使わない）
 Route::get('rss/parts',['uses'=>'AdminController@parts','as'=>'parts']);
 Route::get('rss/parts/edit/{id?}',['uses'=>'AdminController@partsEdit','as'=>'parts.edit']);
 Route::post('rss/parts/edit',['uses'=>'AdminController@partsPost']);
 Route::get('rss/parts/del/{id}',['uses'=>'AdminController@partsDel','as'=>'parts.del']);
 
+/////////////////////////////////////////////////////////////////////
+// 置換設定
 Route::get('rss/replace',['uses'=>'AdminController@replace','as'=>'replace']);
 Route::get('rss/replace/edit/{id?}',['uses'=>'AdminController@replaceEdit','as'=>'replace.edit']);
 Route::post('rss/replace/edit',['uses'=>'AdminController@replacePost']);
 Route::get('rss/replace/del/{id}',['uses'=>'AdminController@replaceDel','as'=>'replace.del']);
 
-Route::get('rss/article',['uses'=>'AdminController@article','as'=>'article']);
+/////////////////////////////////////////////////////////////////////
+// リファラ設定（もう使わない）
 Route::get('rss/refloop',['uses'=>'AdminController@refloop','as'=>'refloop']);
 Route::get('rss/refer/{id}',['uses'=>'AdminController@refer','as'=>'refer']);
 Route::get('rss/referall/{id}',['uses'=>'AdminController@referall','as'=>'referall']);
 
+/////////////////////////////////////////////////////////////////////
+// NGワード
 Route::get('rss/ngword',['uses'=>'AdminController@ngword','as'=>'ngword']);
 Route::get('rss/ngword/edit/{id?}',['uses'=>'AdminController@ngwordEdit','as'=>'ngword.edit']);
 Route::post('rss/ngword/edit',['uses'=>'AdminController@ngwordPost']);
 Route::get('rss/ngword/del/{id}',['uses'=>'AdminController@ngwordDel','as'=>'ngword.del']);
-
 Route::get('rss/postword',['uses'=>'AdminController@postword','as'=>'postword']);
 Route::get('rss/postword/edit/{id?}',['uses'=>'AdminController@postwordEdit','as'=>'postword.edit']);
 Route::post('rss/postword/edit',['uses'=>'AdminController@postwordPost']);
 Route::get('rss/postword/del/{id}',['uses'=>'AdminController@postwordDel','as'=>'postword.del']);
 
+/////////////////////////////////////////////////////////////////////
+// 女優名
 Route::get('rss/actress',['uses'=>'AdminController@actress','as'=>'actress']);
 Route::get('rss/actress/edit/{id?}',['uses'=>'AdminController@actressEdit','as'=>'actress.edit']);
 Route::post('rss/actress/edit',['uses'=>'AdminController@actressPost']);
 Route::get('rss/actress/del/{id}',['uses'=>'AdminController@actressDel','as'=>'actress.del']);
-
 Route::get('rss/noActress',['uses'=>'AdminController@noActress','as'=>'noActress']);
 Route::get('rss/noActress/edit/{id?}',['uses'=>'AdminController@noActressEdit','as'=>'noActress.edit']);
 Route::post('rss/noActress/edit',['uses'=>'AdminController@noActressPost']);
 Route::get('rss/noActress/del/{id}',['uses'=>'AdminController@noActressDel','as'=>'noActress.del']);
 
 /////////////////////////////////////////////////////////////////////
-// サイト選択フォーム
-/////////////////////////////////////////////////////////////////////
-
-Route::post('/rss/site',array('before'=>'csrf',function(){
-	Session::put('acc',Input::get('acc'));
-
-	return Redirect::to('/rss/blog');
-}));
-
-Route::get('cron/rssGet/{id?}',['uses'=>'CronController@rssGet','as'=>'cron.rssGet']);
-Route::get('cron/rssPost/{id?}',['uses'=>'CronController@rssPost','as'=>'cron.rssPost']);
+// RSS取得、サイト投稿
 Route::get('cron/cnt',['uses'=>'CronController@cnt','as'=>'cron.cnt']);
-Route::get('cron/rssGet2',['uses'=>'CronController2@rssGet','as'=>'cron2.rssGet']);
-Route::get('cron/rssPost2',['uses'=>'CronController2@rssPost','as'=>'cron2.rssGet']);
-
-Route::get('/info',function()
-{
-	echo 'utime:'.time().'<br>';
-	//phpinfo();
-	return 'end';
-});
-
+Route::get('cron/rssGet2',['uses'=>'CronController2@rssGet','as'=>'cron.rssGet2']);
+Route::get('cron/rssPost2',['uses'=>'CronController2@rssPost','as'=>'cron.rssPost2']);
