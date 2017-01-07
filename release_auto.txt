@@ -1,0 +1,12 @@
+alter table article2 add title_rewrite text;
+alter table sites add tags text;
+CREATE TABLE `user_site` (
+  `users_id` int(11) NOT NULL,
+  `site_id` int(11) NOT NULL,
+  KEY `user_id` (`users_id`,`site_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+alter table users add role varchar(10) NOT NULL DEFAULT 'writer';
+
+
+d6NkJomRBRGTJRIc
+afkwe6Taks8W

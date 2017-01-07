@@ -435,6 +435,7 @@ class CronController2 extends BaseController {
 					'url' => $article_url,
 					'title' => $title,
 					'title_org' => $title_org,
+					'title_rewrite' => '',
 					'description' => $item['description'],
 					'imgurl' => $item['imgurl'],
 					'movid' => $movid,
