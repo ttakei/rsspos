@@ -146,7 +146,7 @@ class CronController2 extends BaseController {
 			$acc = $db_blog->acc;  // 入稿先サイト名
 			
 			// サイトがアクティブでない場合(rss無効の場合)はスルー
-			if (!$sites[$acc]['isactive']) {
+			if (!isset($sites[$acc]) || !$sites[$acc]['isactive']) {
 				continue;
 			}
 			
@@ -203,7 +203,10 @@ class CronController2 extends BaseController {
 				$categories = $item->get_categories();
 				if (is_array($categories)) {
 					foreach ($categories as $item_tag) {
-						$tag_arr[] = $item_tag->get_label();
+						$label = $item_tag->get_label();
+						if (!empty($label)) {
+							$tag_arr[] = $label;
+						}
 					}
 				}
 				$tag = implode(',', $tag_arr);
@@ -612,7 +615,10 @@ EOS
 					}
 				}
 				// タイトル長さ
-				if (mb_strlen($article->title) > $site->titleLength) {
+				if (
+					(!empty($article->title_rewrite) && mb_strlen($article->title_rewrite) > $site->titleLength) ||
+					(empty($article->title_rewrite) && mb_strlen($article->title) > $site->titleLength)
+				) {
 					$article_ignore[] = array(
 						'reason' => 'over title length',
 						'acc' => $site->acc,
@@ -771,7 +777,12 @@ EOS
 				}
 				// -タグ
 				if (!empty($article->tag)) {
-					$query['terms_names']['post_tag'] = explode(',', $article->tag);
+					$tag_arr =  explode(',', $article->tag);
+					foreach ($tag_arr as $tag) {
+						if (!empty($tag)) {
+							$query['terms_names']['post_tag'][] = $tag;
+						}
+					}
 				}
 				// -カテゴリ
 				if (!empty($article->category)) {
