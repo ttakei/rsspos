@@ -237,7 +237,7 @@ class AdminController extends BaseController {
 			// 設定しているテンプレート
 			$use_mov_tmpl = array();
 			foreach (Config::get('app.movService') as $col => $ms) {
-				if ($site->$ms) {
+				if ($site->$col) {
 					//$use_mov_tmpl[$ms] = true;
 					$use_mov_tmpl[] = $ms;
 				}

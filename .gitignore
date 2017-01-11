@@ -7,3 +7,4 @@ composer.lock
 .DS_Store
 Thumbs.db
 /html/app/storage/debugbar/*
+pw.txt
