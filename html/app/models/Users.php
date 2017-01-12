@@ -6,6 +6,6 @@ class Users extends Eloquent
 	protected $softDelete = true;
 
 	public function sites(){
-		return $this->hasMany('UserSites');
+		return $this->hasMany('UserSites')->orderBy('site_id');
 	}
 }	

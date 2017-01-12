@@ -9,8 +9,8 @@ class AdminController extends BaseController {
 
 	public function mypage(){
 		$cfg['selected']='hide';
-		$news = News::all();	// お知らせ用
-		$sites = Sites::all();	// サイトリスト用
+		$news = News::all(); // お知らせ用
+		$sites = Sites::all()->sortBy("id"); // サイトリスト用
 		$user = json_decode(Users::find(Session::get('user')),true);
 		return View::make('mypage',compact('cfg','news','sites','user'));
 	}
@@ -30,7 +30,7 @@ class AdminController extends BaseController {
 	}
 
 	public function top(){
-		$sites = Sites::all();	// サイトリスト用
+		$sites = Sites::all()->sortBy("id"); // サイトリスト用
 		return View::make('rss',compact('sites'));
 	}
 
@@ -41,7 +41,7 @@ class AdminController extends BaseController {
 			$sites = $sites->where('sitetype',Input::get('sitetype'));
 		if(Input::has('category') && Input::get('category')!='*')
 			$sites = $sites->where('category',Input::get('category'));
-		$sites = $sites->get();
+		$sites = $sites->orderBy('id', 'asc')->get();
 
 		return View::make('site',compact('show','sites'));
 	}
