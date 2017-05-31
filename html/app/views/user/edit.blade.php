@@ -15,6 +15,8 @@
     {{Form::textField('password','パスワード',$user->password)}}
    
     {{Form::cb('sites[]','編集サイト',Sites::all()->lists('name','id'),$user->sites->lists('site_id'))}}
+    {{Form::label('role','権限')}}
+    {{Form::rb('role',array('admin'=>'admin','writer'=>'writer'),$user->role)}}
     {{Form::submit('保存',array('class'=>'btn btn-primary'))}}
     {{Form::close()}}
   </div>

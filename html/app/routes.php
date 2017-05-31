@@ -264,7 +264,11 @@ Route::post('/login', function()
 		Session::put('user', $res[0]->id);
 		Session::put('nickname', $res[0]->nickname);
 		Session::put('role',$res[0]->role);
-		return Redirect::intended('/rss/site');
+		if ($res[0]->role == 'admin') {
+			return Redirect::intended('/rss/site');
+		} else {
+			return Redirect::intended('/rss');
+		}
 	}else{
 		return Redirect::back()->withInput();
 	}
@@ -469,7 +473,7 @@ Route::get('/rss/article/del/{id}',array('before'=>'myauth',function($id)
 	return Redirect::to('/rss/article');
 }))->where('id','[0-9]+');
 // TODO: AdminContollerに処理を移す
-Route::get('/rss/check',['before'=>'admauth','as'=>'writer.check',function(){
+Route::get('/rss/check',['before'=>'myauth','as'=>'writer.check',function(){
 	//$cfg['nickname']=Session::get('nickname');
 	//$cfg['ASP_NAME']='RSS Widget';
 	$cfg['selected']='';
@@ -483,7 +487,10 @@ Route::get('/rss/check',['before'=>'admauth','as'=>'writer.check',function(){
 	// 予約投稿時刻が入力されている && 動画サービスありの記事を抽出
 	$articles = Article2::selectRaw("blogs.name, blogs.siteurl,article2.*")
 	->where('movSite','<>','')
-	->where('researved_at','<>','0000-00-00 00:00:00')
+	->where(function($query){
+		$query->where('researved_at','<>','0000-00-00 00:00:00')
+		->orWhere('posted_at', '<>','0000-00-00 00:00:00');
+	})
 	->leftJoin('blogs','blogs.id','=','article2.blogid')
 	->where('blogs.acc',Session::get('acc'))
 	->whereIn('article2.blogid',$blogs)

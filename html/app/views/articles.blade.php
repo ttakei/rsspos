@@ -29,7 +29,10 @@
 				<td>{{$item->id}}</td>
 				<td>@if($item->imgurl!='')<img src="{{$item->imgurl}}" width=200>@endif</td>
 				<td>
-					<a href="{{$item->url}}" target="_blank">{{$item->name}}</a> | <p class="label label-success">{{$item->movSite}}{{($item->movlink!='')?' (link)':''}}</p><br>
+					@if(Session::get('role')=='admin')
+						<a href="{{$item->url}}" target="_blank">{{$item->name}}</a> | 
+					@endif
+					<p class="label label-success">{{$item->movSite}}{{($item->movlink!='')?' (link)':''}}</p><br>
 					{{$item->created_at}} | 
 					@if(Config::get('app.manu'))
 					<span style="{{($item->researved_at!='0000-00-00 00:00:00')?'background-color:#FBB':''}}">{{$item->researved_at}}</span> | 

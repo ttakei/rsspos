@@ -26,8 +26,8 @@ $(function(){
 	<div class="panel-heading">記事内容編集 <span class="label label-danger">注意：保存しないとSEO系、予約投稿時間が保存されません=予約投稿は出来ません</span></div>
 	<div class="panel-body">
 		<div class="row">
-			<div class="col-md-6">
-				<img src="{{$articleObj->imgurl}}" width=360 height=240>
+			<div class="col-md-6" style="text-align:center">
+				<img src="{{$articleObj->imgurl}}" style="width:auto; height:auto;max-width:360px;max-height:240px">
 			</div>
 			<div class="col-md-6">
 				<?php
@@ -41,7 +41,18 @@ $(function(){
 				?>
 			</div>
 		</div>
-		{{Form::open(array('url'=>'rss/article/edit'))}}
+		<script type="text/javascript"> 
+		<!-- 
+		function check(){
+			if(window.confirm('送信してよろしいですか？')){
+				return true;
+			} else {
+				return false;
+			}
+		}
+		// -->
+		</script>
+		{{Form::open(array('url'=>'rss/article/edit','onSubmit'=>'return check()'))}}
 		{{Form::hidden('id',$articleObj->id)}}
 
 		{{--Form::staticField('blog_name','配信元',$articleObj->blogname)--}}
@@ -91,6 +102,7 @@ $(function(){
 		</div>
 		@endif
 		</div>
+		
 		{{Form::textField('tag[]','タグ',$articleObj->tag)}}
 
 		{{--Form::textField('seo_title','SEO タイトル',($articleObj->seo_title!='')?$articleObj->seo_title:$articleObj->title_org )--}}

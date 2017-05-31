@@ -52,6 +52,7 @@ class UserController extends BaseController
         ->withInput();
     }
 
+	$Input['active'] = 1;
     $user = Users::create($input);
 
     $sites = Input::get('sites') ? Input::get('sites') : array();
