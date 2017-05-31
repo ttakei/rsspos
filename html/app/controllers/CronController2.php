@@ -248,6 +248,52 @@ class CronController2 extends BaseController {
 						}
 					}
 					
+					// タイトル置換
+					$title_replaced = $title;
+					$replace_words = ReplaceWords::all();
+					foreach ($replace_words as $replace_word) {
+						$from_word = $replace_word->from;
+						$to_words = explode(',', $replace_word->to);
+						$to_word = $to_words[rand(0, count($to_words) - 1)];
+						$title_replaced = str_replace($from_word, $to_word, $title_replaced);
+					}
+					
+					// タイトル女優名付与
+					// #actress#
+					if (!empty($sites[$acc]['actressFormat'])) {
+						$format_org = $sites[$acc]['actressFormat'];
+						$format = $format_org;
+						$actress_list = Actress::all();
+						foreach ($actress_list as $actress) {
+							if (strpos($title_replaced, $actress->name) !== false) {
+								$format = str_replace('#actress#', $actress->name, $format);
+								break;
+							}
+						}
+						// 女優名がタイトルに含まれなかった場合
+						if ($format === $format_org) {
+							$no_actress_list = Noactress::where('sites_acc', $acc)->get();
+							$rates = array();
+							$rate_sum = 0;
+							foreach ($no_actress_list as $no_actress) {
+								$rate_sum += $no_actress->rate;
+								$rates[] = array(
+									'rate' => $rate_sum,
+									'name' => $no_actress->name,
+								);
+							}
+							$randnum = rand(0, $rate_sum - 1);
+							foreach ($rates as $rate) {
+								if ($rate['rate'] > $randnum) {
+									$format = str_replace('#actress#', $rate['name'], $format);
+									break;
+								}
+							}
+						}
+						
+						$title_replaced = $format. $title_replaced;
+					}
+				
 					// NG判定
 					// 投稿ワード
 					$postwords = Postword::where('sites_acc', $acc)->get();
@@ -256,7 +302,7 @@ class CronController2 extends BaseController {
 					foreach ($postwords as $postword) {
 						$postok = false;
 						$word_tag = $postword->tag;
-						if (preg_match("/$word_tag/", $title)) {
+						if (preg_match("/$word_tag/", $title_replaced)) {
 							$postok = true;
 							break;
 						}
@@ -278,9 +324,9 @@ class CronController2 extends BaseController {
 					$ngwords = Ngword::where('sites_acc', $acc)->get();
 					foreach ($ngwords as $ngword) {
 						$word_tag = $ngword->tag;
-						if (preg_match("/$word_tag/", $title)) {
+						if (preg_match("/$word_tag/", $title_replaced)) {
 							// NG
-							$blog_articles_ng[] = array(
+							$blog_articles_error['ng'][]= array(
 								'blogid' => $blogid,
 								'acc' => $acc,
 								'url' => $article_url,
@@ -320,7 +366,8 @@ class CronController2 extends BaseController {
 					$blog_articles[$article_url]['blog'][$blogid] = array(
 						'acc' => $acc,
 						'rssurl' => $rssurl,
-						'title' => $title,
+						'title' => $title_replaced,
+						'title_org' => $title,
 						'description' => $description,
 						'imgurl' => $imgurl,
 						'tag' => $tag,
@@ -374,55 +421,8 @@ class CronController2 extends BaseController {
 			}
 			
 			foreach ($article['blog'] as $blogid => $item) {
-				$title_org = $item['title'];
-				$title = $title_org;
-				
-				// タイトル置換
-				if (!empty($sites[$item['acc']]['useReplaceWords'])) {
-					$replace_words = ReplaceWords::all();
-					foreach ($replace_words as $replace_word) {
-						$from_word = $replace_word->from;
-						$to_words = explode(',', $replace_word->to);
-						$to_word = $to_words[rand(0, count($to_words) - 1)];
-						$title = str_replace($from_word, $to_word, $title);
-					}
-				}
-				
-				// タイトル女優名付与
-				// #actress#
-				if (!empty($sites[$item['acc']]['actressFormat'])) {
-					$format_org = $sites[$item['acc']]['actressFormat'];
-					$format = $format_org;
-					$actress_list = Actress::all();
-					foreach ($actress_list as $actress) {
-						if (strpos($title, $actress->name) !== false) {
-							$format = str_replace('#actress#', $actress->name, $format);
-							break;
-						}
-					}
-					// 女優名がタイトルに含まれなかった場合
-					if ($format === $format_org) {
-						$no_actress_list = Noactress::where('sites_acc', $item['acc'])->get();
-						$rates = array();
-						$rate_sum = 0;
-						foreach ($no_actress_list as $no_actress) {
-							$rate_sum += $no_actress->rate;
-							$rates[] = array(
-								'rate' => $rate_sum,
-								'name' => $no_actress->name,
-							);
-						}
-						$randnum = rand(0, $rate_sum - 1);
-						foreach ($rates as $rate) {
-							if ($rate['rate'] > $randnum) {
-								$format = str_replace('#actress#', $rate['name'], $format);
-								break;
-							}
-						}
-					}
-					
-					$title = $format. $title;
-				}
+				$title_org = $item['title_org'];
+				$title = $item['title'];
 				
 				if (Config::get('app.manu')) {
 					//手動ツールは記事編集時にセットする
