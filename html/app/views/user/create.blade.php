@@ -13,6 +13,8 @@
 		{{Form::textField('email','メールアドレス',Input::old('email'))}}
 		{{Form::textField('password','パスワード',Input::old('password'))}}
 		{{Form::cb('sites[]','編集サイト',Sites::all()->lists('name','id'),null)}}
+		{{Form::label('role','権限')}}
+		{{Form::rb('role',array('admin'=>'admin','writer'=>'writer'),'writer')}}
 		{{Form::submit('保存',array('class'=>'btn btn-primary'))}}
 		{{Form::close()}}
 	</div>

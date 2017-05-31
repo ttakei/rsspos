@@ -36,7 +36,10 @@ class AdminController extends BaseController {
 
 	public function site(){
 		$show=1;
-		$sites = Sites::where('userid',Session::get('user'));
+		$userSites = Users::find(Session::get('user'))->sites->lists('site_id');
+		$sites = Sites::whereIn('id',$userSites);
+		
+		//$sites = Sites::where('userid',Session::get('user'));
 		if(Input::has('sitetype') && Input::get('sitetype')!='*')
 			$sites = $sites->where('sitetype',Input::get('sitetype'));
 		if(Input::has('category') && Input::get('category')!='*')
@@ -70,6 +73,7 @@ class AdminController extends BaseController {
 					case 'isNeedmov':
 					case 'isNeedimg':
 					case 'isactive':
+					case 'useReplaceWords':
 					  $sites[$column->Field] = 1;
 					  break;
 					case 'xvideo':

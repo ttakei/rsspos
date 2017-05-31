@@ -65,7 +65,10 @@
 			<li class="list-group-item"><a href="/cron/rssGet2?acc={{Session::get('acc')}}" class="">RSS手動取得</a></li>
 			<li class="list-group-item"><a href="/cron/rssPost2?acc={{Session::get('acc')}}" class="">手動投稿</a></li>
 		@else
-			<li class="list-group-item"><a href="{{route('articlelist')}}" class="">記事リスト</a></li>
+			<li class="list-group-item"><a href="{{route('article')}}" class="">記事リスト</a></li>
+			@if(Config::get('app.manu'))
+			<li class="list-group-item"><a href="{{route('writer.check')}}" class="">ライターチェック</a></li>
+			@endif
 		@endif
 		</ul>
 	</div>

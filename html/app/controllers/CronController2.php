@@ -39,8 +39,8 @@ class CronController2 extends BaseController {
 			'link' => '/(http[s]?:\/\/ero-video\.net\/movie\/\?mcd=[0-9a-zA-Z]*)/',
 		),
 		'pornhub' => array(
-			'id' => '/<iframe[^>]*src\s*=\s*["\']http[s]?:\/\/.*?\.pornhub\.com\/embed\/(.*?)["\'\/]/i',
-			'link' => '/(http[s]?:\/\/.*?\.pornhub\.com\/view_video\.php\?viewkey=[0-9a-zA-Z]*)/',
+			'id' => '/<iframe[^>]*src\s*=\s*["\']http[s]?:\/\/(jp\.)?pornhub\.com\/embed\/(.*?)["\'\/]/i',
+			'link' => '/(http[s]?:\/\/(jp\.)?pornhub\.com\/view_video\.php\?viewkey=[0-9a-zA-Z]*)/',
 		),
 		'pipii' => array(
 			'id' => '/<iframe[^>]*src\s*=\s*["\']http[s]?:\/\/www\.pipii\.tv\/player\?id=(.*?)["\'\/&]/i',
@@ -111,6 +111,7 @@ class CronController2 extends BaseController {
 				'seotitle' => $db_site->seotitle,
 				'seodesc' => $db_site->seodesc,
 				'seokeyword' => $db_site->seokeyword,
+				'useReplaceWords' => $db_site->useReplaceWords,
 			);
 		}
 		
@@ -194,10 +195,17 @@ class CronController2 extends BaseController {
 			
 			foreach ($feed_items as $item) {
 				$article_url = $item->get_link();
+				if (empty($article_url) || strlen($article_url) > 300) {
+					Log::info("invalid url $article_url");
+					continue;
+				}
 				$title = html_entity_decode($item->get_title());
 				$description = html_entity_decode($item->get_description());
 				$content = html_entity_decode($item->get_content());
 				$created_at = $item->get_date('Y-m-d H:i:s');
+				if (empty($created_at)) {
+					$created_at = date('Y-m-d H:i:s');
+				}
 				
 				$tag_arr = array();
 				$categories = $item->get_categories();
@@ -370,12 +378,14 @@ class CronController2 extends BaseController {
 				$title = $title_org;
 				
 				// タイトル置換
-				$replace_words = ReplaceWords::all();
-				foreach ($replace_words as $replace_word) {
-					$from_word = $replace_word->from;
-					$to_words = explode(',', $replace_word->to);
-					$to_word = $to_words[rand(0, count($to_words) - 1)];
-					$title = str_replace($from_word, $to_word, $title);
+				if (!empty($sites[$item['acc']]['useReplaceWords'])) {
+					$replace_words = ReplaceWords::all();
+					foreach ($replace_words as $replace_word) {
+						$from_word = $replace_word->from;
+						$to_words = explode(',', $replace_word->to);
+						$to_word = $to_words[rand(0, count($to_words) - 1)];
+						$title = str_replace($from_word, $to_word, $title);
+					}
 				}
 				
 				// タイトル女優名付与
@@ -595,276 +605,302 @@ EOS
 			$article_list = DB::select($query); 
 			
 			foreach ($article_list as $article) {
-				$msg = sprintf("post start %d", $article->id);
-				Log::debug($msg);
-				
-				// 記事チェック
-				// チェックに引っかかった記事はnewフラグを落として次へ
-				// 画像
-				if (!empty($site->isNeedimg) || !empty($site->isEyecatch)) {
-					if (empty($article->imgurl)) {
-						$article_ignore[] = array(
-							'reason' => 'no image',
-							'acc' => $site->acc,
-							'article' => $article,
-						);
-						Article2::where('id', $article->id)->update(array('new' => 0));
-						$msg = sprintf("no image ignore: article_id(%s)", $article->id);
-						LOG::info($msg);
-						continue;
-					}
-				}
-				// タイトル長さ
-				if (
-					(!empty($article->title_rewrite) && mb_strlen($article->title_rewrite) > $site->titleLength) ||
-					(empty($article->title_rewrite) && mb_strlen($article->title) > $site->titleLength)
-				) {
-					$article_ignore[] = array(
-						'reason' => 'over title length',
-						'acc' => $site->acc,
-						'article' => $article,
-					);
-					Article2::where('id', $article->id)->update(array('new' => 0));
-					$msg = sprintf("too long title length ignore: article_id(%s)", $article->id);
-					LOG::info($msg);
-					continue;
-				}
-				// 動画情報
-				if (!empty($site->isNeedmov)) {
-					if ( empty($article->movSite) || ( empty($article->movid) && empty($article->movlink) ) ) {
-						$article_ignore[] = array(
-							'reason' => 'no movie info',
-							'acc' => $site->acc,
-							'article' => $article,
-						);
-						Article2::where('id', $article->id)->update(array('new' => 0));
-						$msg = sprintf("no movie info ignore: article_id(%s)", $article->id);
-						LOG::info($msg);
-						continue;
-					}
-				}
-				
-				// 投稿内容作成
-				$wptitle = $site->wptitle;
-				if (!empty($article->title_rewrite)) {
-					$wptitle = str_replace('#title#', $article->title_rewrite, $wptitle);
-				} else {
-					$wptitle = str_replace('#title#', $article->title, $wptitle);
-				}
-				
-				$wpdesc = "";
-				if (!empty($site->isNeedmov)) {
-					if (!empty($article->movid)) {
-						// 動画テンプレートを使う
-						$col = $article->movSite;
-						$wpdesc = $site->$col;
-						$wpdesc_trim = trim(mb_convert_kana($wpdesc, 's', 'UTF-8'));
-						if (empty($wpdesc_trim)) {
-							$article_ignore[] = array(
-								'reason' => 'empty movie template',
-								'acc' => $site->acc,
-								'article' => $article,
-							);
-							Article2::where('id', $article->id)->update(array('new' => 0));
-							$msg = sprintf("not set template ignore: article_id(%s), movSite(%s)", $article->id, $article->movSite);
-							LOG::info($msg);
-							continue;
-						}
-						$wpdesc = str_replace('#title#', $article->title, $wpdesc);
-						$wpdesc = str_replace('#imgurl#', $article->imgurl, $wpdesc);
-						$wpdesc = str_replace('#url#', $article->url, $wpdesc);
-						$wpdesc = str_replace('#movid#', $article->movid, $wpdesc);
-						$wpdesc = str_replace('#movSite#', $article->movSite, $wpdesc);
-					} else {
-						// 動画リンクテンプレートを使う
-						$col = $article->movSite. '__movlink';
-						$wpdesc = $site->$col;
-						$wpdesc_trim = trim(mb_convert_kana($wpdesc, 's', 'UTF-8'));
-						if (empty($wpdesc_trim)) {
-							$article_ignore[] = array(
-								'reason' => 'empty movie link template',
-								'acc' => $site->acc,
-								'article' => $article,
-							);
-							Article2::where('id', $article->id)->update(array('new' => 0));
-							$msg = sprintf("not set link template ignore: article_id(%s), movSite(%s)", $article->id, $article->movSite);
-							LOG::info($msg);
-							continue;
-						}
-						$wpdesc = str_replace('#title#', $article->title, $wpdesc);
-						$wpdesc = str_replace('#imgurl#', $article->imgurl, $wpdesc);
-						$wpdesc = str_replace('#url#', $article->url, $wpdesc);
-						$wpdesc = str_replace('#movlink#', $article->movlink, $wpdesc);
-						$wpdesc = str_replace('#movSite#', $article->movSite, $wpdesc);
-					}
-				} else {
-					// 投稿内容設定を使う
-					$wpdesc = $site->wpdesc;
-					$wpdesc = str_replace('#title#', $article->title, $wpdesc);
-					$wpdesc = str_replace('#url#', $article->url, $wpdesc);
-					$wpdesc = str_replace('#imgurl#', $article->imgurl, $wpdesc);
-					$wpdesc = str_replace('#content#', $article->description, $wpdesc);
-				}
-				
-				//var_dump($wptitle, $wpdesc);
-				
-				$client_ixr = new IXR_Client($site->wphost);
-				$img_ixr_id = "";
-				if (!empty($site->isEyecatch)) {
-					// アイキャッチ投稿
-					// http://nekoriki.net/50 を参考にしている
-					$img_info = @getimagesize($article->imgurl);
-					if (!$img_info) {
-						// 画像取得失敗
-						$article_error[] = array(
-							'reason' => "failed fetch image file",
-							'acc' => $site->acc,
-							'article' => $article,
-						);
-						Article2::where('id', $article->id)->update(array('new' => 0));
-						$msg = sprintf("failed fetch image file: article_id(%s), imgurl(%s)", $article->id, $article->imgurl);
-						Log::warning($msg);
-						continue;
-					}
-					$bits_ixr = new IXR_Base64(@file_get_contents($article->imgurl));
-					$imgurl_parsed = parse_url($article->imgurl);
-					$img_name = basename($imgurl_parsed['path']);
+				try {
+					$msg = sprintf("post start %d", $article->id);
+					Log::debug($msg);
 					
-					$status_ixr = $client_ixr->query(
-						"wp.uploadFile",
-						1,
-						$site->wpuser,
-						$site->wppass,
-						array(
-							'name' => $img_name,
-							'type' => $img_info['mime'],
-							'bits' => $bits_ixr,
-							'overwrite' => true,
-						)
+					// 記事チェック
+					// チェックに引っかかった記事はnewフラグを落として次へ
+					// 画像
+					if (!empty($site->isNeedimg) || !empty($site->isEyecatch)) {
+						if (empty($article->imgurl)) {
+							$article_ignore[] = array(
+								'reason' => 'no image',
+								'acc' => $site->acc,
+								'article' => $article,
+							);
+							Article2::where('id', $article->id)->update(array('new' => 0));
+							$msg = sprintf("no image ignore: article_id(%s)", $article->id);
+							LOG::info($msg);
+							continue;
+						}
+					}
+					// タイトル長さ
+					if (
+						(!empty($article->title_rewrite) && mb_strlen($article->title_rewrite) > $site->titleLength) ||
+						(empty($article->title_rewrite) && mb_strlen($article->title) > $site->titleLength)
+					) {
+						$article_ignore[] = array(
+							'reason' => 'over title length',
+							'acc' => $site->acc,
+							'article' => $article,
+						);
+						Article2::where('id', $article->id)->update(array('new' => 0));
+						$msg = sprintf("too long title length ignore: article_id(%s)", $article->id);
+						LOG::info($msg);
+						continue;
+					}
+					// 動画情報
+					if (!empty($site->isNeedmov)) {
+						if ( empty($article->movSite) || ( empty($article->movid) && empty($article->movlink) ) ) {
+							$article_ignore[] = array(
+								'reason' => 'no movie info',
+								'acc' => $site->acc,
+								'article' => $article,
+							);
+							Article2::where('id', $article->id)->update(array('new' => 0));
+							$msg = sprintf("no movie info ignore: article_id(%s)", $article->id);
+							LOG::info($msg);
+							continue;
+						}
+					}
+					
+					// 投稿内容作成
+					$wptitle = $site->wptitle;
+					if (!empty($article->title_rewrite)) {
+						$wptitle = str_replace('#title#', $article->title_rewrite, $wptitle);
+					} else {
+						$wptitle = str_replace('#title#', $article->title, $wptitle);
+					}
+					
+					$wpdesc = "";
+					if (!empty($site->isNeedmov)) {
+						if (!empty($article->movid)) {
+							// 動画テンプレートを使う
+							$col = $article->movSite;
+							$wpdesc = $site->$col;
+							$wpdesc_trim = trim(mb_convert_kana($wpdesc, 's', 'UTF-8'));
+							if (empty($wpdesc_trim)) {
+								$article_ignore[] = array(
+									'reason' => 'empty movie template',
+									'acc' => $site->acc,
+									'article' => $article,
+								);
+								Article2::where('id', $article->id)->update(array('new' => 0));
+								$msg = sprintf("not set template ignore: article_id(%s), movSite(%s)", $article->id, $article->movSite);
+								LOG::info($msg);
+								continue;
+							}
+							if (!empty($article->title_rewrite)) {
+								$wpdesc = str_replace('#title#', $article->title_rewrite, $wpdesc);
+							} else {
+								$wpdesc = str_replace('#title#', $article->title, $wpdesc);
+							}
+							$wpdesc = str_replace('#imgurl#', $article->imgurl, $wpdesc);
+							$wpdesc = str_replace('#url#', $article->url, $wpdesc);
+							$wpdesc = str_replace('#movid#', $article->movid, $wpdesc);
+							$wpdesc = str_replace('#movSite#', $article->movSite, $wpdesc);
+						} else {
+							// 動画リンクテンプレートを使う
+							$col = $article->movSite. '__movlink';
+							$wpdesc = $site->$col;
+							$wpdesc_trim = trim(mb_convert_kana($wpdesc, 's', 'UTF-8'));
+							if (empty($wpdesc_trim)) {
+								$article_ignore[] = array(
+									'reason' => 'empty movie link template',
+									'acc' => $site->acc,
+									'article' => $article,
+								);
+								Article2::where('id', $article->id)->update(array('new' => 0));
+								$msg = sprintf("not set link template ignore: article_id(%s), movSite(%s)", $article->id, $article->movSite);
+								LOG::info($msg);
+								continue;
+							}
+							if (!empty($article->title_rewrite)) {
+								$wpdesc = str_replace('#title#', $article->title_rewrite, $wpdesc);
+							} else {
+								$wpdesc = str_replace('#title#', $article->title, $wpdesc);
+							}
+							$wpdesc = str_replace('#imgurl#', $article->imgurl, $wpdesc);
+							$wpdesc = str_replace('#url#', $article->url, $wpdesc);
+							$wpdesc = str_replace('#movlink#', $article->movlink, $wpdesc);
+							$wpdesc = str_replace('#movSite#', $article->movSite, $wpdesc);
+						}
+					} else {
+						// 投稿内容設定を使う
+						$wpdesc = $site->wpdesc;
+						if (!empty($article->title_rewrite)) {
+							$wpdesc = str_replace('#title#', $article->title_rewrite, $wpdesc);
+						} else {
+							$wpdesc = str_replace('#title#', $article->title, $wpdesc);
+						}
+						$wpdesc = str_replace('#url#', $article->url, $wpdesc);
+						$wpdesc = str_replace('#imgurl#', $article->imgurl, $wpdesc);
+						$wpdesc = str_replace('#content#', $article->description, $wpdesc);
+					}
+					
+					//var_dump($wptitle, $wpdesc);
+					
+					$client_ixr = new IXR_Client($site->wphost);
+					$img_ixr_id = "";
+					if (!empty($site->isEyecatch)) {
+						// アイキャッチ投稿
+						// http://nekoriki.net/50 を参考にしている
+						$img_info = @getimagesize($article->imgurl);
+						if (!$img_info) {
+							// 画像取得失敗
+							$article_error[] = array(
+								'reason' => "failed fetch image file",
+								'acc' => $site->acc,
+								'article' => $article,
+							);
+							Article2::where('id', $article->id)->update(array('new' => 2));
+							$msg = sprintf("failed fetch image file: article_id(%s), imgurl(%s)", $article->id, $article->imgurl);
+							Log::warning($msg);
+							continue;
+						}
+						$bits_ixr = new IXR_Base64(@file_get_contents($article->imgurl));
+						$imgurl_parsed = parse_url($article->imgurl);
+						$img_name = basename($imgurl_parsed['path']);
+						
+						$status_ixr = $client_ixr->query(
+							"wp.uploadFile",
+							1,
+							$site->wpuser,
+							$site->wppass,
+							array(
+								'name' => $img_name,
+								'type' => $img_info['mime'],
+								'bits' => $bits_ixr,
+								'overwrite' => true,
+							)
+						);
+						if(!$status_ixr){
+							$article_error[] = array(
+								'reason' => "failed post eyecatch",
+								'acc' => $site->acc,
+								'msg' => $client_ixr->getErrorCode(). ': '. $client_ixr->getErrorMessage(),
+								'article' => $article,
+							);
+							Article2::where('id', $article->id)->update(array('new' => 2));
+							$msg = sprintf("failed post eyecatch: article_id(%s), imgurl(%s), msg(%s)", $article->id, $article->imgurl, $client_ixr->getErrorCode(). ': '. $client_ixr->getErrorMessage());
+							Log::warning($msg);
+							continue;
+						}
+						$img_ixr = $client_ixr->getResponse();
+						$img_ixr_id = $img_ixr['id'];
+					}
+					
+					// 記事投稿
+					// http://nekoriki.net/47 を参考にしている
+					// クエリ作成
+					$query = array(
+						'post_title' => $wptitle, // タイトル
+						'post_content' => $wpdesc, // 本文
 					);
+					// -投稿状態
+					if (!empty($article->researved_at) && $article->researved_at != '0000-00-00 00:00:00') {
+						$query['post_status'] = 'future';
+						$post_date_ixr = new IXR_Date(strtotime($article->researved_at));
+						$query['post_date'] = $post_date_ixr;
+					} elseif ($site->post_status == 'draft') {
+						$query['post_status'] = 'draft';
+					} else {
+						$query['post_status'] = 'publish';
+					}
+					// -タグ
+					if (!empty($article->tag)) {
+						$tag_arr =  explode(',', $article->tag);
+						foreach ($tag_arr as $tag) {
+							if (!empty($tag)) {
+								$query['terms_names']['post_tag'][] = $tag;
+							}
+						}
+					}
+					// -カテゴリ
+					if (!empty($article->category)) {
+						$category_id_arr = explode(',', $article->category);
+						$query['terms']['category'] = $category_id_arr;
+					} elseif (!empty($site->isPostCategory) && !empty($article->movSite)) {
+						$query['terms_names']['category'] = array($article->movSite);
+					}
+					// -SEO
+					if (!empty($article->seo_title)) {
+						$query['custom_fields'][] = array('key' => '_aioseop_title', 'value' => $article->seo_title);
+					}
+					if (!empty($article->seo_keyword)) {
+						$query['custom_fields'][] = array('key' => '_aioseop_keywords', 'value' => $article->seo_keyword);
+					}
+					if (!empty($article->seo_desc)) {
+						$query['custom_fields'][] = array('key' => '_aioseop_description', 'value' => $article->seo_desc);
+					}
+					// 投稿リクエスト
+					$status_ixr = $client_ixr->query(
+						"wp.newPost", //使うAPIを指定（wp.newPostは、新規投稿）
+						1, // blog ID: 通常は1、マルチサイト時変更
+						$site->wpuser, // ユーザー名
+						$site->wppass, // パスワード
+						$query
+					);
+					$postid_ixr = "";
 					if(!$status_ixr){
+						Article2::where('id', $article->id)->update(array('new' => 2));
 						$article_error[] = array(
-							'reason' => "failed post eyecatch",
+							'reason' => "failed post",
 							'acc' => $site->acc,
 							'msg' => $client_ixr->getErrorCode(). ': '. $client_ixr->getErrorMessage(),
 							'article' => $article,
 						);
-						Article2::where('id', $article->id)->update(array('new' => 0));
-						$msg = sprintf("failed post eyecatch: article_id(%s), imgurl(%s), msg(%s)", $article->id, $article->imgurl, $client_ixr->getErrorCode(). ': '. $client_ixr->getErrorMessage());
+						$msg = sprintf("failed post: article_id(%s), msg(%s)", $article->id, $client_ixr->getErrorCode(). ': '. $client_ixr->getErrorMessage());
 						Log::warning($msg);
 						continue;
 					}
-					$img_ixr = $client_ixr->getResponse();
-					$img_ixr_id = $img_ixr['id'];
-				}
-				
-				// 記事投稿
-				// http://nekoriki.net/47 を参考にしている
-				// クエリ作成
-				$query = array(
-					'post_title' => $wptitle, // タイトル
-					'post_content' => $wpdesc, // 本文
-				);
-				// -投稿状態
-				if (!empty($article->researved_at) && $article->researved_at != '0000-00-00 00:00:00') {
-					$query['post_status'] = 'future';
-					$post_date_ixr = new IXR_Date(strtotime($article->researved_at));
-					$query['post_date'] = $post_date_ixr;
-				} elseif ($site->post_status == 'draft') {
-					$query['post_status'] = 'draft';
-				} else {
-					$query['post_status'] = 'publish';
-				}
-				// -タグ
-				if (!empty($article->tag)) {
-					$tag_arr =  explode(',', $article->tag);
-					foreach ($tag_arr as $tag) {
-						if (!empty($tag)) {
-							$query['terms_names']['post_tag'][] = $tag;
+					$postid_ixr = $client_ixr->getResponse(); //返り値は投稿ID
+					
+						
+					if (!empty($site->isEyecatch)) {
+						// アイキャッチ設定
+						$status_ixr = $client_ixr->query(
+							"wp.editPost",
+							1,
+							$site->wpuser, 
+							$site->wppass, 
+							$postid_ixr,
+							array("post_thumbnail" => $img_ixr_id)
+						);
+						if(!$status_ixr){
+							$article_error[] = array(
+								'reason' => "failed set eyecatch",
+								'acc' => $site->acc,
+								'msg' => $client_ixr->getErrorCode(). ': '. $client_ixr->getErrorMessage(),
+								'article' => $article,
+							);
+							Article2::where('id', $article->id)->update(array('new' => 2));
+							$msg = sprintf("failed set eyecatch: article_id(%s), imgurl(%s), postid(%s), msg(%s)", $article->id, $article->imgurl, $postid_ixr, $client_ixr->getErrorCode(). ': '. $client_ixr->getErrorMessage());
+							Log::warning($msg);
+							continue;
 						}
+						$thumb_ixr = $client_ixr->getResponse();
 					}
-				}
-				// -カテゴリ
-				if (!empty($article->category)) {
-					$category_id_arr = explode(',', $article->category);
-					$query['terms']['category'] = $category_id_arr;
-				} elseif (!empty($site->isPostCategory) && !empty($article->movSite)) {
-					$query['terms_names']['category'] = array($article->movSite);
-				}
-				// -SEO
-				if (!empty($article->seo_title)) {
-					$query['custom_fields'][] = array('key' => '_aioseop_title', 'value' => $article->seo_title);
-				}
-				if (!empty($article->seo_keyword)) {
-					$query['custom_fields'][] = array('key' => '_aioseop_keywords', 'value' => $article->seo_keyword);
-				}
-				if (!empty($article->seo_desc)) {
-					$query['custom_fields'][] = array('key' => '_aioseop_description', 'value' => $article->seo_desc);
-				}
-				// 投稿リクエスト
-				$status_ixr = $client_ixr->query(
-					"wp.newPost", //使うAPIを指定（wp.newPostは、新規投稿）
-					1, // blog ID: 通常は1、マルチサイト時変更
-					$site->wpuser, // ユーザー名
-					$site->wppass, // パスワード
-					$query
-				);
-				$postid_ixr = "";
-				if(!$status_ixr){
-					$article_error[] = array(
-						'reason' => "failed post",
+					
+					// newフラグを落とす。投稿日時を更新する。予約投稿日時をクリアする。
+					Article2::where('id', $article->id)->update(array(
+						'new' => 0,
+						'posted_at' => date('Y-m-d H:i:s', time()),
+						'researved_at' => '0000-00-00 00:00:00',
+					));
+					
+					$article_done[] = array(
 						'acc' => $site->acc,
-						'msg' => $client_ixr->getErrorCode(). ': '. $client_ixr->getErrorMessage(),
+						'article' => $article,
+						'postid' => $postid_ixr,
+						'img' => $img_ixr_id,
+						'query' => $query,
+					);
+					$msg = sprintf("post done %d", $article->id);
+					Log::debug($msg);
+				} catch(Exception $e) {
+					// その他エラー
+					$article_error[] = array(
+						'reason' => "other error",
+						'acc' => $site->acc,
 						'article' => $article,
 					);
-					$msg = sprintf("failed post: article_id(%s), msg(%s)", $article->id, $client_ixr->getErrorCode(). ': '. $client_ixr->getErrorMessage());
+					Article2::where('id', $article->id)->update(array('new' => 2));
+					$msg = sprintf("failed: reason(%s)", $e->getMessage());
 					Log::warning($msg);
 					continue;
 				}
-				$postid_ixr = $client_ixr->getResponse(); //返り値は投稿ID
-				
-					
-				if (!empty($site->isEyecatch)) {
-					// アイキャッチ設定
-					$status_ixr = $client_ixr->query(
-						"wp.editPost",
-						1,
-						$site->wpuser, 
-						$site->wppass, 
-						$postid_ixr,
-						array("post_thumbnail" => $img_ixr_id)
-					);
-					if(!$status_ixr){
-						$article_error[] = array(
-							'reason' => "failed set eyecatch",
-							'acc' => $site->acc,
-							'msg' => $client_ixr->getErrorCode(). ': '. $client_ixr->getErrorMessage(),
-							'article' => $article,
-						);
-						Article2::where('id', $article->id)->update(array('new' => 0));
-						$msg = sprintf("failed set eyecatch: article_id(%s), imgurl(%s), postid(%s), msg(%s)", $article->id, $article->imgurl, $postid_ixr, $client_ixr->getErrorCode(). ': '. $client_ixr->getErrorMessage());
-						Log::warning($msg);
-						continue;
-					}
-					$thumb_ixr = $client_ixr->getResponse();
-				}
-				
-				// newフラグを落とす。投稿日時を更新する。予約投稿日時をクリアする。
-				Article2::where('id', $article->id)->update(array(
-					'new' => 0,
-					'posted_at' => date('Y-m-d H:i:s', time()),
-					'researved_at' => '0000-00-00 00:00:00',
-				));
-				
-				$article_done[] = array(
-					'acc' => $site->acc,
-					'article' => $article,
-					'postid' => $postid_ixr,
-					'img' => $img_ixr_id,
-					'query' => $query,
-				);
-				$msg = sprintf("post done %d", $article->id);
-				Log::debug($msg);
 			}
 		}
 		
@@ -952,7 +988,6 @@ EOS
 			$url_parsed = parse_url($url);
 			if ($url_parsed === false || empty($url_parsed['host'])) {
 				$urls_error[$url] = true;
-				Log::warning("invalid url $url");
 				continue;
 			}
 			$domain = $url_parsed['host'];

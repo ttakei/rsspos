@@ -6,7 +6,7 @@ alter table article2 add new tinyint(1) DEFAULT '1';
 alter table article2 add index acc_new (acc,new);
 update article2 set new = 0 where updated_at < '2016-12-27 15:45:00';
 
-CREATE UNIQUE INDEX blogid_url_unique on article2 (blogid, url);
+CREATE UNIQUE INDEX blogid_url_unique on article2 (blogid, url(1023));
 
 alter table sites add `javynow` text NOT NULL;
 alter table sites add `VJAV` text NOT NULL;

@@ -1,0 +1,40 @@
+153.122.54.224
+
+ySSH rootƒpƒXz
+nU8SmvMcXo6v
+
+yFTPz
+153.122.54.224
+ID:istyle
+PASS:taka0714
+
+
+hi.rsspos.net
+
+
+hi_rsspos_net
+HvDwz9hYA6sj39CY
+
+
+CREATE USER 'hi_rsspos_net'@"localhost" IDENTIFIED BY "HvDwz9hYA6sj39CY";
+
+GRANT all ON hi_rsspos_net.* TO hi_rsspos_net;
+
+
+rsspos_net
+d6NkJomRBRGTJRIc
+
+mysqldump -ursspos_net -pd6NkJomRBRGTJRIc rsspos_net > rsspos_net.dump
+
+mysql -uhi_rsspos_net -pHvDwz9hYA6sj39CY hi_rsspos_net < rsspos_net.dump
+
+
+ishigami@istyle-web.co.jp
+afkwe6Taks8W
+
+mysqlimport -uhi_rsspos_net -pHvDwz9hYA6sj39CY hi_rsspos_net replace_words.tsv
+
+
+*/30 * * * * curl -s http://hi.rsspos.net/cron/rssGet2;curl -s http://hi.rsspos.net/cron/rssPost2
+
+alter table sites add useReplaceWords tinyint default 1;

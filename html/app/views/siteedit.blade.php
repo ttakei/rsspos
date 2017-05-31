@@ -39,8 +39,11 @@
 
 		{{Form::textField('name','サイト名',$site['name'])}}
     {{Form::textField('url','サイトURL',$site['url'])}}
-		{{Form::label('isactive','サイト状態(RSS取得)')}}
+	{{Form::label('isactive','サイト状態(RSS取得)')}}
     {{Form::rbinline('isactive','',array(0=>'無効',1=>'有効'),$site['isactive'])}}
+
+	{{Form::label('useReplaceWords','単語置換')}}
+    {{Form::rbinline('useReplaceWords','',array(0=>'無効',1=>'有効'),$site['useReplaceWords'])}}
 
     {{Form::textField('actressFormat','女優見出し設定 <small class="label label-danger">未記入時はタイトルの先頭に女優名を表示しません(例)【#actress#】</small>',$site['actressFormat'])}}
     {{Form::textField('titleLength','投稿タイトル文字数制限 <small class="label label-danger">この文字数を超えたタイトルは投稿しません</small>',($site['titleLength']!='')?$site['titleLength']:100,['style'=>"width:60px"])}}
