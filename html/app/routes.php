@@ -549,3 +549,7 @@ Route::get('rss/noActress/del/{id}',['uses'=>'AdminController@noActressDel','as'
 Route::get('cron/cnt',['uses'=>'CronController@cnt','as'=>'cron.cnt']);
 Route::get('cron/rssGet2',['uses'=>'CronController2@rssGet','as'=>'cron.rssGet2']);
 Route::get('cron/rssPost2',['uses'=>'CronController2@rssPost','as'=>'cron.rssPost2']);
+
+/////////////////////////////////////////////////////////////////////
+// 各種API
+Route::get('api/site/all',['uses'=>'SiteApi@allUrlEncoded']);

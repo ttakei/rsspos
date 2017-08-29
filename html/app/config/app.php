@@ -7,6 +7,11 @@ return array(
 	
 	'manu' => true,
 
+	// laravel5.2以降の機能なので使えない
+	// 'log' => 'daily',
+	// 'log_max_files' => '90',
+	// 'log_level' => 'error',
+
 	'movtag'=>[
 		'xvideo'=>'<iframe src="http://flashservice.xvideos.com/embedframe/#movid#" frameborder=0 width=360 height=240 scrolling=no></iframe>',
 		'fc2'=>'<script src="http://static.fc2.com/video/js/outerplayer.min.js" url="http://video.fc2.com/a/content/#movid#/" tk="TmpBeE5qRTNNamc9" tl="#title#" sj="15" d="3605" w="360" h="240"  charset="UTF-8"></script>',
